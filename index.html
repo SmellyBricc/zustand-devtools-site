@@ -1,0 +1,269 @@
+<title>Zustand DevTools — live state inspector for Chrome DevTools</title>
+<style>
+  :root {
+    --bg: #f4f5f8;
+    --panel: #ffffff;
+    --ink: #14151a;
+    --ink-dim: #5b5f6c;
+    --ink-faint: #8a8fa0;
+    --line: #e1e3ea;
+    --accent: #4f46e5;
+    --accent-ink: #ffffff;
+    --accent-soft: #edecfd;
+    --code-bg: #14151a;
+    --code-ink: #d9dbe4;
+    --code-line: #2a2c36;
+    --v-string: #d68a5c;
+    --v-bool: #6ea0e8;
+    --v-num: #7fc39a;
+    --shadow: 0 1px 2px rgba(20, 21, 26, 0.04), 0 8px 24px rgba(20, 21, 26, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101116;
+      --panel: #17181f;
+      --ink: #ecedf3;
+      --ink-dim: #a4a8b6;
+      --ink-faint: #6b6f7f;
+      --line: #2a2c36;
+      --accent: #8e87f5;
+      --accent-ink: #101116;
+      --accent-soft: #262449;
+      --code-bg: #0b0c10;
+      --code-ink: #d9dbe4;
+      --code-line: #24262f;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101116;
+    --panel: #17181f;
+    --ink: #ecedf3;
+    --ink-dim: #a4a8b6;
+    --ink-faint: #6b6f7f;
+    --line: #2a2c36;
+    --accent: #8e87f5;
+    --accent-ink: #101116;
+    --accent-soft: #262449;
+    --code-bg: #0b0c10;
+    --code-ink: #d9dbe4;
+    --code-line: #24262f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f5f8;
+    --panel: #ffffff;
+    --ink: #14151a;
+    --ink-dim: #5b5f6c;
+    --ink-faint: #8a8fa0;
+    --line: #e1e3ea;
+    --accent: #4f46e5;
+    --accent-ink: #ffffff;
+    --accent-soft: #edecfd;
+    --code-bg: #14151a;
+    --code-ink: #d9dbe4;
+    --code-line: #2a2c36;
+    --shadow: 0 1px 2px rgba(20, 21, 26, 0.04), 0 8px 24px rgba(20, 21, 26, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  code, .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 56px; }
+  .brand .mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent); color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; font-family: ui-monospace, monospace;
+    flex: none;
+  }
+  .brand .name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .brand .tag {
+    margin-left: auto; font-size: 12px; color: var(--ink-faint);
+    border: 1px solid var(--line); border-radius: 100px; padding: 3px 10px;
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    font-weight: 650;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 18px;
+    color: var(--ink-dim);
+    max-width: 54ch;
+    margin: 0 0 40px;
+  }
+
+  .panel {
+    background: var(--code-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 64px;
+    border: 1px solid var(--code-line);
+  }
+  .panel .chrome {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--code-line);
+  }
+  .panel .chrome .tabs { display: flex; gap: 18px; font-size: 12.5px; }
+  .panel .chrome .tabs span { color: #6b6f80; }
+  .panel .chrome .tabs .active { color: var(--accent); position: relative; }
+  .panel .chrome .tabs .active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -11px; height: 2px; background: var(--accent);
+  }
+  .panel .chrome .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #58c274; margin-left: auto;
+    box-shadow: 0 0 0 3px rgba(88, 194, 116, 0.18);
+  }
+  .panel .status {
+    padding: 10px 16px; font-size: 12.5px; color: #7d8194; border-bottom: 1px solid var(--code-line);
+  }
+  .panel .body { padding: 6px 0 12px; }
+  .comp { padding: 10px 16px; }
+  .comp .name { color: #9fb8ff; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .comp .row { font-size: 12.5px; color: var(--code-ink); padding-left: 2px; }
+  .comp .row .k { color: #6b6f80; }
+  .s { color: var(--v-string); }
+  .b { color: var(--v-bool); }
+  .n { color: var(--v-num); }
+
+  h2 {
+    font-size: 22px; letter-spacing: -0.01em; margin: 0 0 6px; font-weight: 620;
+  }
+  .section { margin-bottom: 56px; }
+  .section > p.section-sub { color: var(--ink-dim); margin: 0 0 24px; max-width: 58ch; }
+
+  .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .tiers { grid-template-columns: 1fr; } }
+  .tier {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px;
+  }
+  .tier .eyebrow {
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint);
+    font-weight: 600; margin-bottom: 8px;
+  }
+  .tier .price { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  .tier .price .accent { color: var(--accent); }
+  .tier ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+  .tier li { font-size: 14px; color: var(--ink-dim); padding-left: 18px; position: relative; }
+  .tier li::before {
+    content: "→"; position: absolute; left: 0; color: var(--accent); font-size: 12px; top: 2px;
+  }
+
+  .howrow { display: grid; grid-template-columns: auto 1fr; gap: 14px 16px; }
+  .howrow .step-n {
+    font-family: ui-monospace, monospace; font-size: 12px; color: var(--accent);
+    background: var(--accent-soft); width: 26px; height: 26px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .howrow .step-t { font-size: 14.5px; padding-top: 2px; color: var(--ink); }
+  .howrow .step-t b { font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--line); padding-top: 24px; margin-top: 8px;
+    display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+    font-size: 13px; color: var(--ink-faint);
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  footer .sep { color: var(--line); }
+</style>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="mark">Z</div>
+    <div class="name">Zustand DevTools</div>
+    <div class="tag">Chrome extension · in development</div>
+  </div>
+
+  <h1>See your Zustand state update live, right inside Chrome DevTools.</h1>
+  <p class="lede">
+    A DevTools panel for apps built with <a href="https://github.com/pmndrs/zustand" target="_blank" rel="noopener">Zustand</a>.
+    Open DevTools, click the Zustand tab, and watch component state change as you use your
+    app — no code changes, no imports, nothing added to your bundle.
+  </p>
+
+  <div class="panel" role="img" aria-label="Mockup of the Zustand DevTools panel showing live component state">
+    <div class="chrome">
+      <div class="tabs"><span class="active">Live State</span><span>Action Log</span></div>
+      <div class="dot"></div>
+    </div>
+    <div class="status">React 18.3.1 detected — live state below.</div>
+    <div class="body">
+      <div class="comp">
+        <div class="name">CartSummary</div>
+        <div class="row"><span class="k">#0:</span> <span class="n">3</span></div>
+        <div class="row"><span class="k">#1:</span> <span class="s">"USD"</span></div>
+      </div>
+      <div class="comp">
+        <div class="name">UserMenu</div>
+        <div class="row"><span class="k">#0:</span> <span class="s">"Ada"</span></div>
+        <div class="row"><span class="k">#1:</span> <span class="b">true</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Two tiers, one panel</h2>
+    <p class="section-sub">The inspector is free. The action log and time-travel are a one-time purchase, unlocked with a one-line addition to a store.</p>
+    <div class="tiers">
+      <div class="tier">
+        <div class="eyebrow">Free</div>
+        <div class="price">Fiber-tree inspector</div>
+        <ul>
+          <li>Live component state, zero setup</li>
+          <li>Search by component name</li>
+          <li>Matches your DevTools theme</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <div class="eyebrow">One-time purchase</div>
+        <div class="price">Action log <span class="accent">&amp;</span> time-travel</div>
+        <ul>
+          <li>Named history of every state change</li>
+          <li>Jump back to any past state, one click</li>
+          <li>Unified timeline across all your stores</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How people get it</h2>
+    <p class="section-sub">Distributed as a Chrome extension, discovered via the Chrome Web Store and word of mouth among Zustand users.</p>
+    <div class="howrow">
+      <div class="step-n">1</div>
+      <div class="step-t">Install <b>Zustand DevTools</b> from the Chrome Web Store (listing in progress).</div>
+      <div class="step-n">2</div>
+      <div class="step-t">Open DevTools on any page using Zustand — the panel works immediately, free.</div>
+      <div class="step-n">3</div>
+      <div class="step-t">To unlock the action log, add the <code>zustand-devtools-bridge</code> package to a store and purchase a license once.</div>
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2026 Zustand DevTools</span>
+    <span class="sep">·</span>
+    <a href="https://github.com/SmellyBricc" target="_blank" rel="noopener">GitHub</a>
+    <span class="sep">·</span>
+    <span>Not affiliated with the Zustand or pmndrs projects</span>
+  </footer>
+</div>
