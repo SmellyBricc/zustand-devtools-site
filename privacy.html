@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Zustand DevTools</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --panel: #ffffff; --ink: #14151a; --ink-dim: #5b5f6c;
+    --line: #e1e3ea; --accent: #4f46e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #101116; --panel: #17181f; --ink: #ecedf3; --ink-dim: #a4a8b6; --line: #2a2c36; --accent: #8e87f5; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 56px 20px 80px; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .updated { color: var(--ink-dim); font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 16px; margin: 32px 0 8px; }
+  p, li { font-size: 14.5px; color: var(--ink); }
+  ul { padding-left: 20px; }
+  a { color: var(--accent); }
+  code {
+    background: var(--line); padding: 1px 5px; border-radius: 4px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92em;
+  }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Privacy Policy for Zustand DevTools</h1>
+  <div class="updated">Last updated: 2026-07-13</div>
+
+  <p>Zustand DevTools does not collect, store, or transmit your personal data or browsing history to any server.</p>
+
+  <h2>What Data We Collect</h2>
+  <p>None, by default. The extension reads component state from pages you inspect while Chrome DevTools is open with the "Zustand" panel active, and displays it in that same panel. This data never leaves your device — it's relayed entirely through the browser's own internal extension messaging, from the inspected page to your own open DevTools window.</p>
+  <p>If you use the optional <code>zustand-devtools-bridge</code> package and paste a license key into the Action Log tab to unlock the paid tier, that key is sent to Lemon Squeezy's license validation API to confirm it's valid, and the result is stored locally in your browser (<code>chrome.storage.local</code>) so you don't have to re-enter it. No other data accompanies that request.</p>
+
+  <h2>How Data Is Stored</h2>
+  <ul>
+    <li>Component state: not stored — read live and discarded once displayed.</li>
+    <li>License key (only if you activate the paid tier): stored locally in your browser via <code>chrome.storage.local</code>. Never synced, never sent anywhere except the one-time validation call described above.</li>
+  </ul>
+
+  <h2>How Data Is Used</h2>
+  <ul>
+    <li>Component state is used solely to render the DevTools panel you're looking at.</li>
+    <li>A license key is used solely to unlock the Action Log/time-travel tab locally.</li>
+  </ul>
+
+  <h2>Third-Party Services</h2>
+  <p>License-key validation uses Lemon Squeezy's public License API (<code>https://api.lemonsqueezy.com</code>). See Lemon Squeezy's own privacy policy for how they handle that request. No other third-party service is used.</p>
+
+  <h2>Data Sharing</h2>
+  <p>We don't share any data with third parties. We don't operate a server that could share data even if we wanted to — there is no backend to this extension.</p>
+
+  <h2>Data Retention and Deletion</h2>
+  <p>Uninstalling the extension removes everything it stored, including any saved license key.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>If what this extension collects or does ever changes, this file will be updated and the "Last updated" date above will change accordingly.</p>
+
+  <h2>Contact</h2>
+  <p>Open an issue on the <a href="https://github.com/SmellyBricc/zustand-devtools/issues">project's GitHub repository</a>, or email <a href="mailto:kuba.opoczka@gmail.com">kuba.opoczka@gmail.com</a>.</p>
+
+  <footer>Zustand DevTools — <a href="https://github.com/SmellyBricc/zustand-devtools">github.com/SmellyBricc/zustand-devtools</a></footer>
+</div>
+</body>
+</html>
