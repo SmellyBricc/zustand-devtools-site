@@ -1,4 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zustand DevTools — live state inspector for Chrome DevTools</title>
+<meta name="description" content="A Chrome DevTools panel showing live Zustand store state with zero code changes — plus an optional one-time-purchase action log with time-travel debugging.">
+<meta property="og:title" content="Zustand DevTools">
+<meta property="og:description" content="Live Zustand state in Chrome DevTools, zero code changes. Optional action log & time-travel, one-time purchase.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://smellybricc.github.io/zustand-devtools-site/">
+<meta property="og:image" content="https://smellybricc.github.io/zustand-devtools-site/og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='18' font-weight='800' fill='white' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #f4f5f8;
@@ -185,13 +197,33 @@
   footer a { color: var(--ink-dim); text-decoration: none; }
   footer a:hover { color: var(--accent); }
   footer .sep { color: var(--line); }
+
+  .tier-note {
+    margin: 16px 0 0; font-size: 12.5px; color: var(--ink-faint); line-height: 1.55;
+  }
+  .faq { display: grid; gap: 8px; }
+  .faq details {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 0 16px;
+  }
+  .faq summary {
+    cursor: pointer; font-size: 14.5px; font-weight: 600; padding: 13px 0;
+    list-style: none; position: relative; padding-right: 24px;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after {
+    content: "+"; position: absolute; right: 2px; top: 11px; color: var(--accent);
+    font-size: 16px; font-weight: 500;
+  }
+  .faq details[open] summary::after { content: "−"; }
+  .faq details p { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-dim); }
 </style>
 
 <div class="wrap">
   <div class="brand">
     <div class="mark">Z</div>
     <div class="name">Zustand DevTools</div>
-    <div class="tag">Chrome extension · in development</div>
+    <div class="tag">Chrome DevTools extension</div>
   </div>
 
   <h1>See your Zustand state update live, right inside Chrome DevTools.</h1>
@@ -226,8 +258,8 @@
     <p class="section-sub">The inspector is free. The action log and time-travel are a one-time purchase, unlocked with a one-line addition to a store.</p>
     <div class="tiers">
       <div class="tier">
-        <div class="eyebrow">Free</div>
-        <div class="price">Fiber-tree inspector</div>
+        <div class="eyebrow">Live state inspector</div>
+        <div class="price"><span class="accent">Free</span> — forever, for everyone</div>
         <ul>
           <li>Live component state, zero setup</li>
           <li>Search by component name</li>
@@ -235,35 +267,72 @@
         </ul>
       </div>
       <div class="tier">
-        <div class="eyebrow">One-time purchase</div>
-        <div class="price">Action log <span class="accent">&amp;</span> time-travel</div>
+        <div class="eyebrow">Action log &amp; time-travel</div>
+        <div class="price"><span class="accent">€9.99</span> once — no subscription</div>
         <ul>
           <li>Named history of every state change</li>
           <li>Jump back to any past state, one click</li>
           <li>Unified timeline across all your stores</li>
         </ul>
+        <p class="tier-note">Sold through <a href="https://zustand-devtools-app.lemonsqueezy.com" target="_blank" rel="noopener">Lemon Squeezy</a> (merchant of record — handles payment, VAT, and invoicing). One license, up to 5 device activations, <a href="terms.html">14-day refund policy</a>.</p>
       </div>
     </div>
   </div>
 
   <div class="section">
-    <h2>How people get it</h2>
-    <p class="section-sub">Distributed as a Chrome extension, discovered via the Chrome Web Store and word of mouth among Zustand users.</p>
+    <h2>Get started</h2>
+    <p class="section-sub">Three steps from install to time-travel.</p>
     <div class="howrow">
       <div class="step-n">1</div>
-      <div class="step-t">Install <b>Zustand DevTools</b> from the Chrome Web Store (listing in progress).</div>
+      <div class="step-t">Install <b>Zustand DevTools</b> from the Chrome Web Store (listing in progress — the <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a> today).</div>
       <div class="step-n">2</div>
       <div class="step-t">Open DevTools on any page using Zustand — the panel works immediately, free.</div>
       <div class="step-n">3</div>
-      <div class="step-t">To unlock the action log, add the <code>zustand-devtools-bridge</code> package to a store and purchase a license once.</div>
+      <div class="step-t">To unlock the action log, add the <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener"><code>zustand-devtools-bridge</code></a> package to a store and purchase a license once.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Questions people ask</h2>
+    <div class="faq">
+      <details>
+        <summary>What do I need for it to work?</summary>
+        <p>Chrome (or a Chromium browser that supports DevTools extensions), an app using React 16.8+ and Zustand 4+. The free inspector needs zero code changes; the action log needs the one-line <code>zustand-devtools-bridge</code> wrapper on each store you want logged.</p>
+      </details>
+      <details>
+        <summary>Does it conflict with the React DevTools extension?</summary>
+        <p>No — it chains onto the same renderer hook React DevTools uses instead of replacing it, so both extensions work side by side regardless of which loads first.</p>
+      </details>
+      <details>
+        <summary>What data does it collect?</summary>
+        <p>None. Component state never leaves your machine — it flows only from the inspected page to your own open DevTools panel. The single network request the extension can make is validating a license key you paste in. Full details in the <a href="privacy.html">privacy policy</a>.</p>
+      </details>
+      <details>
+        <summary>How does the license work?</summary>
+        <p>One purchase, one license key, up to 5 device activations, no subscription and no expiry. Payment is processed by Lemon Squeezy as merchant of record, so VAT and invoices are handled automatically.</p>
+      </details>
+      <details>
+        <summary>What if it doesn't work for me?</summary>
+        <p>Email within 14 days of purchase for a full refund — no questions asked. Bug reports are welcome on <a href="https://github.com/SmellyBricc/zustand-devtools/issues" target="_blank" rel="noopener">GitHub issues</a> either way. See <a href="terms.html">terms &amp; refunds</a>.</p>
+      </details>
     </div>
   </div>
 
   <footer>
     <span>© 2026 Zustand DevTools</span>
     <span class="sep">·</span>
-    <a href="https://github.com/SmellyBricc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
+    <span class="sep">·</span>
+    <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener">npm</a>
+    <span class="sep">·</span>
+    <a href="privacy.html">Privacy</a>
+    <span class="sep">·</span>
+    <a href="terms.html">Terms &amp; refunds</a>
+    <span class="sep">·</span>
+    <a href="mailto:kuba.opoczka@gmail.com">Contact</a>
     <span class="sep">·</span>
     <span>Not affiliated with the Zustand or pmndrs projects</span>
   </footer>
 </div>
+</body>
+</html>
