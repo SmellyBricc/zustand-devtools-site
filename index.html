@@ -10,289 +10,543 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://smellybricc.github.io/zustand-devtools-site/">
 <meta property="og:image" content="https://smellybricc.github.io/zustand-devtools-site/og.png">
+<meta name="theme-color" content="#131420">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='18' font-weight='800' fill='white' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* ---------- Tokens: Chrome-DevTools-dark ground, syntax-token palette ---------- */
   :root {
-    --bg: #f4f5f8;
-    --panel: #ffffff;
-    --ink: #14151a;
-    --ink-dim: #5b5f6c;
-    --ink-faint: #8a8fa0;
-    --line: #e1e3ea;
-    --accent: #4f46e5;
-    --accent-ink: #ffffff;
-    --accent-soft: #edecfd;
-    --code-bg: #14151a;
-    --code-ink: #d9dbe4;
-    --code-line: #2a2c36;
-    --v-string: #d68a5c;
-    --v-bool: #6ea0e8;
-    --v-num: #7fc39a;
-    --shadow: 0 1px 2px rgba(20, 21, 26, 0.04), 0 8px 24px rgba(20, 21, 26, 0.06);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #101116;
-      --panel: #17181f;
-      --ink: #ecedf3;
-      --ink-dim: #a4a8b6;
-      --ink-faint: #6b6f7f;
-      --line: #2a2c36;
-      --accent: #8e87f5;
-      --accent-ink: #101116;
-      --accent-soft: #262449;
-      --code-bg: #0b0c10;
-      --code-ink: #d9dbe4;
-      --code-line: #24262f;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.35);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #101116;
-    --panel: #17181f;
-    --ink: #ecedf3;
-    --ink-dim: #a4a8b6;
-    --ink-faint: #6b6f7f;
-    --line: #2a2c36;
-    --accent: #8e87f5;
-    --accent-ink: #101116;
-    --accent-soft: #262449;
-    --code-bg: #0b0c10;
-    --code-ink: #d9dbe4;
-    --code-line: #24262f;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.35);
-  }
-  :root[data-theme="light"] {
-    --bg: #f4f5f8;
-    --panel: #ffffff;
-    --ink: #14151a;
-    --ink-dim: #5b5f6c;
-    --ink-faint: #8a8fa0;
-    --line: #e1e3ea;
-    --accent: #4f46e5;
-    --accent-ink: #ffffff;
-    --accent-soft: #edecfd;
-    --code-bg: #14151a;
-    --code-ink: #d9dbe4;
-    --code-line: #2a2c36;
-    --shadow: 0 1px 2px rgba(20, 21, 26, 0.04), 0 8px 24px rgba(20, 21, 26, 0.06);
+    color-scheme: dark;
+    --bg: oklch(0.165 0.02 282);            /* near-black, indigo-tinted */
+    --bg-raise: oklch(0.205 0.022 282);     /* raised surfaces */
+    --bg-well: oklch(0.135 0.018 282);      /* devtools panel wells */
+    --line: oklch(0.30 0.025 282);
+    --line-soft: oklch(0.245 0.022 282);
+    --ink: oklch(0.94 0.012 282);
+    --ink-dim: oklch(0.76 0.025 282);
+    --ink-faint: oklch(0.62 0.03 282);
+    --brand: oklch(0.55 0.21 279);          /* the Z indigo, fill duty */
+    --brand-bright: oklch(0.74 0.16 281);   /* indigo for text/lines on dark */
+    --brand-glow: oklch(0.55 0.21 279 / 0.28);
+    --tok-str: oklch(0.78 0.11 55);         /* string orange  */
+    --tok-num: oklch(0.82 0.11 160);        /* number green   */
+    --tok-bool: oklch(0.78 0.10 255);       /* boolean blue   */
+    --tok-key: oklch(0.70 0.04 282);        /* property keys  */
+    --live: oklch(0.80 0.16 150);
+    --sans: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.19, 1, 0.22, 1);
+    --z-sticky: 10; --z-toast: 50;
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; overflow-x: clip; }
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.5;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
-  a { color: var(--accent); }
-  code, .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+  ::selection { background: var(--brand); color: #fff; }
+  a { color: var(--brand-bright); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--brand-bright); outline-offset: 2px; border-radius: 4px; }
+  code { font-family: var(--mono); font-size: 0.9em; }
 
-  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); }
 
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 56px; }
-  .brand .mark {
-    width: 28px; height: 28px; border-radius: 8px;
-    background: var(--accent); color: var(--accent-ink);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 15px; font-family: ui-monospace, monospace;
-    flex: none;
+  /* ---------- Header ---------- */
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: clamp(20px, 3vw, 32px) 0;
   }
-  .brand .name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-  .brand .tag {
-    margin-left: auto; font-size: 12px; color: var(--ink-faint);
-    border: 1px solid var(--line); border-radius: 100px; padding: 3px 10px;
+  .mark {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    background: linear-gradient(160deg, oklch(0.62 0.21 279), oklch(0.50 0.22 280));
+    color: #fff; display: grid; place-items: center;
+    font-family: var(--sans); font-weight: 800; font-size: 18px;
+    box-shadow: 0 0 24px var(--brand-glow);
   }
+  .wordmark { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+  .wordmark span { color: var(--ink-faint); font-weight: 500; }
+  header nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+  header nav a { color: var(--ink-dim); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+  header nav a:hover { color: var(--ink); }
 
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(28px, 6vw, 72px) 0 clamp(40px, 6vw, 72px); position: relative; }
+  .hero::before {
+    /* one quiet aurora, anchored to the brand hue */
+    content: ""; position: absolute; inset: -20% 0 auto;
+    height: 70%;
+    background:
+      radial-gradient(38% 45% at 68% 18%, oklch(0.55 0.21 279 / 0.16), transparent 70%),
+      radial-gradient(30% 40% at 22% 8%, oklch(0.78 0.11 55 / 0.05), transparent 70%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
   h1 {
-    font-size: clamp(32px, 5vw, 44px);
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-    font-weight: 650;
-    margin: 0 0 18px;
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    margin: 0 0 20px;
+    max-width: 17ch;
     text-wrap: balance;
   }
+  h1 em { font-style: normal; color: var(--brand-bright); }
   .lede {
-    font-size: 18px;
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
     color: var(--ink-dim);
-    max-width: 54ch;
-    margin: 0 0 40px;
+    max-width: 56ch;
+    margin: 0 0 30px;
+    text-wrap: pretty;
   }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    font: 600 15px var(--sans); text-decoration: none;
+    padding: 12px 20px; border-radius: 10px; cursor: pointer;
+    transition: transform 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--brand); color: #fff; border: 1px solid transparent; }
+  .btn-primary:hover { background: oklch(0.60 0.21 279); }
+  .btn-ghost {
+    background: transparent; color: var(--ink); border: 1px solid var(--line);
+    font-family: var(--mono); font-weight: 500; font-size: 13.5px;
+  }
+  .btn-ghost:hover { border-color: var(--ink-faint); background: var(--bg-raise); }
+  .btn-ghost .cpy { color: var(--ink-faint); }
+  .fact-row {
+    display: flex; flex-wrap: wrap; gap: 8px 18px;
+    font: 500 12.5px var(--mono); color: var(--ink-faint);
+  }
+  .fact-row li { list-style: none; display: flex; align-items: center; gap: 7px; }
+  .fact-row { padding: 0; margin: 0 0 20px; }
+  .fact-row li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
+  .fact-row li.ok::before { background: var(--tok-num); }
 
-  .panel {
-    background: var(--code-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+  /* ---------- The living demo ---------- */
+  .demo {
+    display: grid; grid-template-columns: minmax(260px, 5fr) 7fr; gap: 18px;
+    margin-top: clamp(28px, 4vw, 44px);
+    align-items: stretch;
+  }
+  .win {
+    background: var(--bg-raise);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
     overflow: hidden;
-    margin-bottom: 64px;
-    border: 1px solid var(--code-line);
+    box-shadow: 0 24px 60px oklch(0 0 0 / 0.35);
+    display: flex; flex-direction: column;
   }
-  .panel .chrome {
-    display: flex; align-items: center; gap: 14px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--code-line);
+  .win-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+    font: 500 12px var(--mono); color: var(--ink-faint);
   }
-  .panel .chrome .tabs { display: flex; gap: 18px; font-size: 12.5px; }
-  .panel .chrome .tabs span { color: #6b6f80; }
-  .panel .chrome .tabs .active { color: var(--accent); position: relative; }
-  .panel .chrome .tabs .active::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -11px; height: 2px; background: var(--accent);
+  .win-bar .dots { display: flex; gap: 5px; }
+  .win-bar .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .win-bar .addr {
+    margin-left: 4px; background: var(--bg-well); border-radius: 6px; padding: 3px 10px;
   }
-  .panel .chrome .dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #58c274; margin-left: auto;
-    box-shadow: 0 0 0 3px rgba(88, 194, 116, 0.18);
-  }
-  .panel .status {
-    padding: 10px 16px; font-size: 12.5px; color: #7d8194; border-bottom: 1px solid var(--code-line);
-  }
-  .panel .body { padding: 6px 0 12px; }
-  .comp { padding: 10px 16px; }
-  .comp .name { color: #9fb8ff; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-  .comp .row { font-size: 12.5px; color: var(--code-ink); padding-left: 2px; }
-  .comp .row .k { color: #6b6f80; }
-  .s { color: var(--v-string); }
-  .b { color: var(--v-bool); }
-  .n { color: var(--v-num); }
 
+  /* fake app */
+  .app-body { padding: 18px; display: grid; gap: 12px; align-content: start; flex: 1; }
+  .app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .app-head .shop { font-weight: 700; font-size: 15.5px; }
+  .app-user { font: 500 12px var(--mono); color: var(--ink-faint); }
+  .app-user b { color: var(--ink-dim); font-weight: 500; }
+  .product {
+    display: flex; align-items: center; gap: 12px;
+    border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px;
+  }
+  .product .swatch { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+  .product .p-name { font-size: 14px; font-weight: 600; }
+  .product .p-price { font: 500 12px var(--mono); color: var(--ink-faint); }
+  .product button, .app-actions button {
+    margin-left: auto; flex: none;
+    font: 600 12.5px var(--sans); color: var(--ink);
+    background: var(--bg-well); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+    transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
+  }
+  .product button:hover, .app-actions button:hover { border-color: var(--brand-bright); }
+  .product button:active, .app-actions button:active { transform: scale(0.96); }
+  .app-actions { display: flex; gap: 8px; }
+  .app-actions button { margin-left: 0; flex: 1; }
+  .cart-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 2px;
+    font: 500 13px var(--mono);
+  }
+  .cart-line .amt { color: var(--tok-num); }
+  .demo-hint {
+    font: 500 12px var(--mono); color: var(--ink-faint);
+    padding: 0 18px 14px; margin: 0;
+  }
+  .demo-hint b { color: var(--brand-bright); font-weight: 500; }
+
+  /* fake devtools panel */
+  .dt { font-family: var(--mono); }
+  .dt-tabs { display: flex; gap: 0; padding: 0 6px; border-bottom: 1px solid var(--line-soft); }
+  .dt-tabs span {
+    font: 500 12px var(--mono); color: var(--ink-faint);
+    padding: 10px 12px; position: relative;
+  }
+  .dt-tabs span.on { color: var(--brand-bright); }
+  .dt-tabs span.on::after {
+    content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px;
+    background: var(--brand-bright); border-radius: 2px;
+  }
+  .dt-tabs .dt-live { margin-left: auto; align-self: center; display: flex; align-items: center; gap: 6px; padding-right: 8px; font-size: 11px; color: var(--ink-faint); }
+  .dt-live i {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--live);
+    box-shadow: 0 0 0 3px oklch(0.80 0.16 150 / 0.18);
+  }
+  .dt-status { font-size: 11.5px; color: var(--ink-faint); padding: 8px 16px; border-bottom: 1px solid var(--line-soft); }
+  .dt-body { display: grid; grid-template-rows: auto 1fr; flex: 1; min-height: 0; }
+  .dt-sec { padding: 10px 16px 12px; }
+  .dt-sec + .dt-sec { border-top: 1px solid var(--line-soft); }
+  .dt-sec h3 {
+    margin: 0 0 8px; font: 600 10.5px var(--mono); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .dt-store { margin-bottom: 8px; }
+  .dt-store:last-child { margin-bottom: 0; }
+  .dt-store .st-name { color: oklch(0.78 0.09 282); font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
+  .dt-row { font-size: 12.5px; line-height: 1.7; padding-left: 14px; }
+  .dt-row .k { color: var(--tok-key); }
+  .v-str { color: var(--tok-str); }
+  .v-num { color: var(--tok-num); }
+  .v-bool { color: var(--tok-bool); }
+  .v-num, .dt-row { font-variant-numeric: tabular-nums; }
+  .bump { animation: bump 0.5s var(--ease); }
+  @keyframes bump {
+    0% { background: oklch(0.55 0.21 279 / 0.28); border-radius: 4px; }
+    100% { background: transparent; }
+  }
+
+  #dt-log { overflow-y: auto; max-height: 240px; display: grid; gap: 6px; align-content: start; }
+  .log-entry {
+    border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 10px;
+    cursor: pointer; background: var(--bg-well);
+    transition: border-color 0.15s var(--ease);
+    animation: slide-in 0.35s var(--ease);
+  }
+  .log-entry:hover { border-color: var(--brand-bright); }
+  .log-entry:focus-visible { border-color: var(--brand-bright); }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+  }
+  .log-head { display: flex; gap: 8px; align-items: baseline; font-size: 11.5px; }
+  .log-store { color: oklch(0.78 0.09 282); }
+  .log-action { color: var(--ink); font-weight: 600; }
+  .log-time { margin-left: auto; color: var(--ink-faint); font-size: 10.5px; }
+  .log-diff { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.6; }
+  .log-diff .add { color: var(--tok-num); }
+  .log-diff .chg { color: var(--tok-str); }
+  .log-entry.tt .log-action { color: var(--brand-bright); }
+
+  /* ---------- Sections ---------- */
+  section { padding: clamp(48px, 8vw, 96px) 0; }
+  section + section { border-top: 1px solid var(--line-soft); }
   h2 {
-    font-size: 22px; letter-spacing: -0.01em; margin: 0 0 6px; font-weight: 620;
+    font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+    line-height: 1.1; letter-spacing: -0.025em; font-weight: 700;
+    margin: 0 0 14px; max-width: 24ch; text-wrap: balance;
   }
-  .section { margin-bottom: 56px; }
-  .section > p.section-sub { color: var(--ink-dim); margin: 0 0 24px; max-width: 58ch; }
+  .sub { color: var(--ink-dim); max-width: 58ch; margin: 0 0 36px; font-size: 1.02rem; text-wrap: pretty; }
 
-  .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 560px) { .tiers { grid-template-columns: 1fr; } }
-  .tier {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px;
+  .feature-rows { display: grid; gap: 0; }
+  .frow {
+    display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 10px 28px;
+    padding: 20px 0; border-top: 1px solid var(--line-soft);
   }
-  .tier .eyebrow {
-    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint);
-    font-weight: 600; margin-bottom: 8px;
-  }
-  .tier .price { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
-  .tier .price .accent { color: var(--accent); }
-  .tier ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
-  .tier li { font-size: 14px; color: var(--ink-dim); padding-left: 18px; position: relative; }
-  .tier li::before {
-    content: "→"; position: absolute; left: 0; color: var(--accent); font-size: 12px; top: 2px;
-  }
+  .frow:last-child { border-bottom: 1px solid var(--line-soft); }
+  .frow dt { font: 500 13px var(--mono); padding-top: 2px; }
+  .frow dd { margin: 0; color: var(--ink-dim); font-size: 15px; max-width: 62ch; }
+  .frow dd b { color: var(--ink); font-weight: 600; }
+  .frow.f-str dt { color: var(--tok-str); }
+  .frow.f-num dt { color: var(--tok-num); }
+  .frow.f-bool dt { color: var(--tok-bool); }
 
-  .howrow { display: grid; grid-template-columns: auto 1fr; gap: 14px 16px; }
-  .howrow .step-n {
-    font-family: ui-monospace, monospace; font-size: 12px; color: var(--accent);
-    background: var(--accent-soft); width: 26px; height: 26px; border-radius: 7px;
-    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  /* paid tier */
+  .paid-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(24px, 4vw, 48px); align-items: start; }
+  .code-card {
+    background: var(--bg-well); border: 1px solid var(--line-soft); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto;
   }
-  .howrow .step-t { font-size: 14.5px; padding-top: 2px; color: var(--ink); }
-  .howrow .step-t b { font-weight: 600; }
+  .code-card pre { margin: 0; font: 400 12.8px/1.75 var(--mono); }
+  .c-kw { color: var(--tok-bool); } .c-fn { color: var(--brand-bright); }
+  .c-str { color: var(--tok-str); } .c-cm { color: var(--ink-faint); }
+  .price-block { display: grid; gap: 14px; }
+  .price-line { display: flex; align-items: baseline; gap: 12px; }
+  .price-line .p { font: 700 clamp(2rem, 4vw, 2.6rem)/1 var(--sans); letter-spacing: -0.02em; }
+  .price-line .once { font: 500 13px var(--mono); color: var(--ink-faint); }
+  .price-feats { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .price-feats li { display: flex; gap: 10px; color: var(--ink-dim); font-size: 15px; }
+  .price-feats li::before { content: "→"; color: var(--brand-bright); flex: none; font-family: var(--mono); font-size: 13px; padding-top: 2px; }
+  .price-note { font-size: 13px; color: var(--ink-faint); line-height: 1.65; }
 
-  footer {
-    border-top: 1px solid var(--line); padding-top: 24px; margin-top: 8px;
-    display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
-    font-size: 13px; color: var(--ink-faint);
+  /* steps — a real sequence, numbering earned */
+  .steps { display: grid; gap: 14px; counter-reset: step; max-width: 720px; }
+  .step {
+    display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start;
+    counter-increment: step;
   }
-  footer a { color: var(--ink-dim); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
-  footer .sep { color: var(--line); }
+  .step::before {
+    content: counter(step);
+    font: 600 14px var(--mono); color: var(--brand-bright);
+    width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px;
+    display: grid; place-items: center; background: var(--bg-raise);
+  }
+  .step p { margin: 4px 0 0; color: var(--ink-dim); font-size: 15px; }
+  .step p b { color: var(--ink); font-weight: 600; }
 
-  .tier-note {
-    margin: 16px 0 0; font-size: 12.5px; color: var(--ink-faint); line-height: 1.55;
-  }
-  .faq { display: grid; gap: 8px; }
-  .faq details {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    padding: 0 16px;
-  }
+  /* FAQ */
+  .faq { display: grid; gap: 10px; max-width: 760px; }
+  .faq details { border: 1px solid var(--line-soft); border-radius: 12px; background: var(--bg-raise); padding: 0 18px; }
   .faq summary {
-    cursor: pointer; font-size: 14.5px; font-weight: 600; padding: 13px 0;
-    list-style: none; position: relative; padding-right: 24px;
+    cursor: pointer; font-size: 15px; font-weight: 600; padding: 15px 26px 15px 0;
+    list-style: none; position: relative;
   }
   .faq summary::-webkit-details-marker { display: none; }
   .faq summary::after {
-    content: "+"; position: absolute; right: 2px; top: 11px; color: var(--accent);
-    font-size: 16px; font-weight: 500;
+    content: "+"; position: absolute; right: 0; top: 12px;
+    color: var(--brand-bright); font: 400 18px var(--mono);
+    transition: transform 0.2s var(--ease);
   }
-  .faq details[open] summary::after { content: "−"; }
-  .faq details p { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-dim); }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq details p { margin: 0 0 16px; color: var(--ink-dim); font-size: 14.5px; max-width: 68ch; }
+
+  footer {
+    border-top: 1px solid var(--line-soft);
+    padding: 28px 0 48px;
+    display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: baseline;
+    font-size: 13px; color: var(--ink-faint);
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--brand-bright); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--bg-raise); border: 1px solid var(--line); border-radius: 10px;
+    font: 500 13px var(--mono); color: var(--ink); padding: 10px 16px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+    z-index: var(--z-toast);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 880px) {
+    .demo { grid-template-columns: 1fr; }
+    .paid-grid { grid-template-columns: 1fr; }
+    #dt-log { max-height: 200px; }
+  }
+  @media (max-width: 560px) {
+    header nav a.gh-link { display: none; }
+    .frow { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
+  }
+
+  /* ---------- Motion discipline ---------- */
+  .reveal { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero h1, .hero .lede, .hero .cta-row, .hero .fact-row {
+      animation: rise 0.7s var(--ease) both;
+    }
+    .hero .lede { animation-delay: 0.08s; }
+    .hero .cta-row { animation-delay: 0.16s; }
+    .hero .fact-row { animation-delay: 0.22s; }
+    .demo { animation: rise 0.8s var(--ease) 0.3s both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .log-entry, .bump { animation: none !important; }
+    * { transition-duration: 0.01ms !important; }
+  }
 </style>
+</head>
+<body>
 
 <div class="wrap">
-  <div class="brand">
-    <div class="mark">Z</div>
-    <div class="name">Zustand DevTools</div>
-    <div class="tag">Chrome DevTools extension</div>
-  </div>
+  <header>
+    <div class="mark" aria-hidden="true">Z</div>
+    <div class="wordmark">Zustand <span>DevTools</span></div>
+    <nav>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="gh-link" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
 
-  <h1>See your Zustand state update live, right inside Chrome DevTools.</h1>
-  <p class="lede">
-    A DevTools panel for apps built with <a href="https://github.com/pmndrs/zustand" target="_blank" rel="noopener">Zustand</a>.
-    Open DevTools, click the Zustand tab, and watch component state change as you use your
-    app — no code changes, no imports, nothing added to your bundle.
-  </p>
-
-  <div class="panel" role="img" aria-label="Mockup of the Zustand DevTools panel showing live component state">
-    <div class="chrome">
-      <div class="tabs"><span class="active">Live State</span><span>Action Log</span></div>
-      <div class="dot"></div>
+  <section class="hero" style="padding-top: clamp(16px, 4vw, 48px);">
+    <h1>Watch your Zustand state <em>move</em>.</h1>
+    <p class="lede">
+      A dedicated Chrome DevTools panel that shows every component's store state as it
+      changes — zero code changes, nothing added to your bundle. Free. Action log and
+      time-travel when you want them.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">View source on GitHub</a>
+      <button class="btn btn-ghost" id="npm-copy" type="button" aria-label="Copy npm install command">
+        npm i zustand-devtools-bridge <span class="cpy">⧉</span>
+      </button>
     </div>
-    <div class="status">React 18.3.1 detected — live state below.</div>
-    <div class="body">
-      <div class="comp">
-        <div class="name">CartSummary</div>
-        <div class="row"><span class="k">#0:</span> <span class="n">3</span></div>
-        <div class="row"><span class="k">#1:</span> <span class="s">"USD"</span></div>
+    <ul class="fact-row">
+      <li class="ok">MIT licensed</li>
+      <li class="ok">No data collection</li>
+      <li class="ok">bridge v0.1.1 on npm</li>
+      <li>Chrome Web Store listing in progress</li>
+    </ul>
+
+    <div class="demo" id="demo">
+      <div class="win" aria-label="A small demo storefront app">
+        <div class="win-bar"><span class="dots"><i></i><i></i><i></i></span><span class="addr">localhost:3000</span></div>
+        <div class="app-body">
+          <div class="app-head">
+            <span class="shop">Acme Storefront</span>
+            <span class="app-user">user: <b id="app-user-name">Ada</b> · <b id="app-user-status">logged out</b></span>
+          </div>
+          <div class="product">
+            <span class="swatch" style="background: linear-gradient(140deg, oklch(0.75 0.12 55), oklch(0.6 0.14 40));"></span>
+            <span><span class="p-name">Desk lamp</span><br><span class="p-price">€39</span></span>
+            <button type="button" data-add="Desk lamp" data-price="39">Add to cart</button>
+          </div>
+          <div class="product">
+            <span class="swatch" style="background: linear-gradient(140deg, oklch(0.72 0.12 255), oklch(0.55 0.16 280));"></span>
+            <span><span class="p-name">Mech keyboard</span><br><span class="p-price">€129</span></span>
+            <button type="button" data-add="Mech keyboard" data-price="129">Add to cart</button>
+          </div>
+          <div class="app-actions">
+            <button type="button" id="app-remove">Remove last item</button>
+            <button type="button" id="app-login">Toggle login</button>
+          </div>
+          <div class="cart-line"><span>cart total</span><span class="amt" id="app-total">€0</span></div>
+        </div>
+        <p class="demo-hint">← a plain React app with two Zustand stores</p>
       </div>
-      <div class="comp">
-        <div class="name">UserMenu</div>
-        <div class="row"><span class="k">#0:</span> <span class="s">"Ada"</span></div>
-        <div class="row"><span class="k">#1:</span> <span class="b">true</span></div>
+
+      <div class="win dt" aria-label="Simulation of the Zustand DevTools panel">
+        <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand</span></div>
+        <div class="dt-tabs">
+          <span class="on">Live State</span><span>Action Log</span>
+          <span class="dt-live"><i></i>connected</span>
+        </div>
+        <div class="dt-status">React 18.3.1 detected — live state below.</div>
+        <div class="dt-body">
+          <div class="dt-sec">
+            <h3>Live State</h3>
+            <div class="dt-store">
+              <div class="st-name">cart</div>
+              <div class="dt-row"><span class="k">items:</span> <span class="v-num" id="dt-items">0</span> <span class="k">· total:</span> <span class="v-num" id="dt-total">0</span></div>
+              <div class="dt-row"><span class="k">lastAdded:</span> <span class="v-str" id="dt-last">null</span></div>
+            </div>
+            <div class="dt-store">
+              <div class="st-name">user</div>
+              <div class="dt-row"><span class="k">name:</span> <span class="v-str" id="dt-name">"Ada"</span> <span class="k">· loggedIn:</span> <span class="v-bool" id="dt-logged">false</span></div>
+            </div>
+          </div>
+          <div class="dt-sec">
+            <h3>Action Log — click an entry to time-travel</h3>
+            <div id="dt-log" aria-live="polite"></div>
+          </div>
+        </div>
+        <p class="demo-hint">↑ a live simulation of the panel, wired to the app on the left. <b>Try it.</b></p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="section">
-    <h2>Two tiers, one panel</h2>
-    <p class="section-sub">The inspector is free. The action log and time-travel are a one-time purchase, unlocked with a one-line addition to a store.</p>
-    <div class="tiers">
-      <div class="tier">
-        <div class="eyebrow">Live state inspector</div>
-        <div class="price"><span class="accent">Free</span> — forever, for everyone</div>
-        <ul>
-          <li>Live component state, zero setup</li>
-          <li>Search by component name</li>
-          <li>Matches your DevTools theme</li>
+  <section>
+    <h2>The free tier reads your app the way React DevTools does.</h2>
+    <p class="sub">
+      No wrapper, no middleware, no import. The extension installs a renderer hook before
+      React loads and walks the Fiber tree directly — so it works on any Zustand app you
+      open, including ones you don't own.
+    </p>
+    <dl class="feature-rows">
+      <div class="frow f-str">
+        <dt>zero_setup</dt>
+        <dd><b>Open DevTools, click the Zustand tab, done.</b> Every component's store-selected values, updating live as you interact with the page.</dd>
+      </div>
+      <div class="frow f-num">
+        <dt>plays_nice</dt>
+        <dd><b>Chains the DevTools hook instead of clobbering it</b> — the real React DevTools keeps working next to it, whichever loads first.</dd>
+      </div>
+      <div class="frow f-bool">
+        <dt>stays_local</dt>
+        <dd><b>State never leaves your machine.</b> Data flows from the inspected page to your own panel and nowhere else — no server, no analytics, no telemetry.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="pricing">
+    <h2>Rewind the bug.</h2>
+    <p class="sub">
+      The action log is the paid tier: a named history of every state change, the diff
+      between each step, and one-click time-travel — across all your stores in a single
+      timeline. One line to opt a store in, mirroring Zustand's own middleware shape:
+    </p>
+    <div class="paid-grid">
+      <div class="code-card">
+<pre><code><span class="c-kw">import</span> { create } <span class="c-kw">from</span> <span class="c-str">'zustand'</span>;
+<span class="c-kw">import</span> { withDevtoolsBridge } <span class="c-kw">from</span> <span class="c-str">'zustand-devtools-bridge'</span>;
+
+<span class="c-kw">const</span> useCartStore = <span class="c-fn">create</span>(
+  <span class="c-fn">withDevtoolsBridge</span>(
+    (set) => ({
+      items: [],
+      addItem: (item) =>
+        <span class="c-fn">set</span>((s) => ({ items: [...s.items, item] }),
+            <span class="c-kw">false</span>, <span class="c-str">'addItem'</span>),  <span class="c-cm">// ← named in the log</span>
+    }),
+    { name: <span class="c-str">'cart'</span> }
+  )
+);</code></pre>
+      </div>
+      <div class="price-block">
+        <div class="price-line"><span class="p">€9.99</span><span class="once">once · no subscription</span></div>
+        <ul class="price-feats">
+          <li>Named action history with per-step diffs</li>
+          <li>One-click time-travel to any past state</li>
+          <li>Unified timeline across every store</li>
+          <li>History survives page reloads · JSON export</li>
         </ul>
-      </div>
-      <div class="tier">
-        <div class="eyebrow">Action log &amp; time-travel</div>
-        <div class="price"><span class="accent">€9.99</span> once — no subscription</div>
-        <ul>
-          <li>Named history of every state change</li>
-          <li>Jump back to any past state, one click</li>
-          <li>Unified timeline across all your stores</li>
-        </ul>
-        <p class="tier-note">Sold through <a href="https://zustand-devtools-app.lemonsqueezy.com" target="_blank" rel="noopener">Lemon Squeezy</a> (merchant of record — handles payment, VAT, and invoicing). One license, up to 5 device activations, <a href="terms.html">14-day refund policy</a>.</p>
+        <p class="price-note">
+          Sold through <a href="https://zustand-devtools-app.lemonsqueezy.com" target="_blank" rel="noopener">Lemon Squeezy</a>
+          (merchant of record — payment, VAT, invoices). One license, up to 5 device
+          activations, <a href="terms.html">14-day no-questions refund</a>.
+        </p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="section">
+  <section>
     <h2>Get started</h2>
-    <p class="section-sub">Three steps from install to time-travel.</p>
-    <div class="howrow">
-      <div class="step-n">1</div>
-      <div class="step-t">Install <b>Zustand DevTools</b> from the Chrome Web Store (listing in progress — the <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a> today).</div>
-      <div class="step-n">2</div>
-      <div class="step-t">Open DevTools on any page using Zustand — the panel works immediately, free.</div>
-      <div class="step-n">3</div>
-      <div class="step-t">To unlock the action log, add the <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener"><code>zustand-devtools-bridge</code></a> package to a store and purchase a license once.</div>
+    <div class="steps">
+      <div class="step">
+        <p><b>Install the extension.</b> Chrome Web Store listing is in progress — until it lands, the <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a> and loads as an unpacked extension.</p>
+      </div>
+      <div class="step">
+        <p><b>Open DevTools on any Zustand app.</b> The Zustand tab shows live component state immediately — nothing to configure.</p>
+      </div>
+      <div class="step">
+        <p><b>Want the action log?</b> Add <code>zustand-devtools-bridge</code> to a store, buy a license once, paste the key into the panel.</p>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="section">
+  <section id="faq">
     <h2>Questions people ask</h2>
     <div class="faq">
       <details>
@@ -316,23 +570,197 @@
         <p>Email within 14 days of purchase for a full refund — no questions asked. Bug reports are welcome on <a href="https://github.com/SmellyBricc/zustand-devtools/issues" target="_blank" rel="noopener">GitHub issues</a> either way. See <a href="terms.html">terms &amp; refunds</a>.</p>
       </details>
     </div>
-  </div>
+  </section>
 
   <footer>
     <span>© 2026 Zustand DevTools</span>
-    <span class="sep">·</span>
     <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
-    <span class="sep">·</span>
     <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener">npm</a>
-    <span class="sep">·</span>
     <a href="privacy.html">Privacy</a>
-    <span class="sep">·</span>
     <a href="terms.html">Terms &amp; refunds</a>
-    <span class="sep">·</span>
     <a href="mailto:kuba.opoczka@gmail.com">Contact</a>
-    <span class="sep">·</span>
     <span>Not affiliated with the Zustand or pmndrs projects</span>
   </footer>
 </div>
+
+<div class="toast" id="toast" role="status">copied to clipboard</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- npm copy button ---------- */
+  var copyBtn = document.getElementById("npm-copy");
+  var toast = document.getElementById("toast");
+  copyBtn.addEventListener("click", function () {
+    var cmd = "npm i zustand-devtools-bridge";
+    (navigator.clipboard ? navigator.clipboard.writeText(cmd) : Promise.reject())
+      .catch(function () {})
+      .finally(function () {
+        toast.classList.add("show");
+        setTimeout(function () { toast.classList.remove("show"); }, 1600);
+      });
+  });
+
+  /* ---------- the living demo ---------- */
+  var state = {
+    cart: { items: 0, total: 0, lastAdded: null },
+    user: { name: "Ada", loggedIn: false }
+  };
+  var history = [];
+  var lastInteraction = 0;
+  var addedStack = [];
+
+  var el = {
+    items: document.getElementById("dt-items"),
+    total: document.getElementById("dt-total"),
+    last: document.getElementById("dt-last"),
+    name: document.getElementById("dt-name"),
+    logged: document.getElementById("dt-logged"),
+    log: document.getElementById("dt-log"),
+    appTotal: document.getElementById("app-total"),
+    appUserStatus: document.getElementById("app-user-status")
+  };
+
+  function fmtVal(v) {
+    if (v === null) return "null";
+    if (typeof v === "string") return '"' + v + '"';
+    return String(v);
+  }
+
+  function bump(node) {
+    if (reduced) return;
+    node.classList.remove("bump");
+    void node.offsetWidth;
+    node.classList.add("bump");
+  }
+
+  function render(changedKeys) {
+    el.items.textContent = state.cart.items;
+    el.total.textContent = state.cart.total;
+    el.last.textContent = fmtVal(state.cart.lastAdded);
+    el.name.textContent = fmtVal(state.user.name);
+    el.logged.textContent = String(state.user.loggedIn);
+    el.appTotal.textContent = "€" + state.cart.total;
+    el.appUserStatus.textContent = state.user.loggedIn ? "logged in" : "logged out";
+    (changedKeys || []).forEach(function (k) { if (el[k]) bump(el[k]); });
+  }
+
+  function snapshot() { return JSON.parse(JSON.stringify(state)); }
+
+  function diffText(prev, next, store) {
+    var out = [];
+    var a = prev[store], b = next[store];
+    Object.keys(b).forEach(function (k) {
+      if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) {
+        out.push('<span class="chg">' + k + ": " + fmtVal(a[k]) + " → " + fmtVal(b[k]) + "</span>");
+      }
+    });
+    return out.join(" &nbsp; ");
+  }
+
+  function logAction(store, action, prevSnap, isTT) {
+    var snap = snapshot();
+    var entry = document.createElement("button");
+    entry.type = "button";
+    entry.className = "log-entry" + (isTT ? " tt" : "");
+    entry.style.display = "block"; entry.style.width = "100%"; entry.style.textAlign = "left";
+    entry.style.font = "inherit"; entry.style.color = "inherit";
+    var t = new Date();
+    var time = t.toTimeString().slice(0, 8);
+    entry.innerHTML =
+      '<span class="log-head"><span class="log-store">[' + store + ']</span>' +
+      '<span class="log-action">' + action + "</span>" +
+      '<span class="log-time">' + time + "</span></span>" +
+      (prevSnap ? '<div class="log-diff">' + diffText(prevSnap, snap, store) + "</div>" : "");
+    var snapCopy = snap;
+    entry.addEventListener("click", function () {
+      var prev = snapshot();
+      state = JSON.parse(JSON.stringify(snapCopy));
+      render(["items", "total", "last", "name", "logged"]);
+      logAction("panel", "⤺ time-travel", null, true);
+      markInteraction();
+    });
+    el.log.prepend(entry);
+    while (el.log.children.length > 9) el.log.removeChild(el.log.lastChild);
+    history.push({ action: action, snap: snap });
+  }
+
+  function dispatch(store, action, mutate, changed) {
+    var prev = snapshot();
+    mutate();
+    render(changed);
+    logAction(store, action, prev, false);
+  }
+
+  function markInteraction() { lastInteraction = Date.now(); }
+
+  /* app wiring */
+  document.querySelectorAll("[data-add]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      markInteraction();
+      var name = btn.getAttribute("data-add");
+      var price = Number(btn.getAttribute("data-price"));
+      addedStack.push(price);
+      dispatch("cart", "addItem", function () {
+        state.cart.items += 1;
+        state.cart.total += price;
+        state.cart.lastAdded = name;
+      }, ["items", "total", "last"]);
+    });
+  });
+  document.getElementById("app-remove").addEventListener("click", function () {
+    markInteraction();
+    if (!state.cart.items) return;
+    var price = addedStack.pop() || 0;
+    dispatch("cart", "removeItem", function () {
+      state.cart.items -= 1;
+      state.cart.total = Math.max(0, state.cart.total - price);
+      if (!state.cart.items) state.cart.lastAdded = null;
+    }, ["items", "total", "last"]);
+  });
+  document.getElementById("app-login").addEventListener("click", function () {
+    markInteraction();
+    dispatch("user", state.user.loggedIn ? "logout" : "login", function () {
+      state.user.loggedIn = !state.user.loggedIn;
+    }, ["logged"]);
+  });
+
+  /* ambient autoplay: only when visible, idle, tab focused, motion allowed */
+  var demoVisible = false;
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      demoVisible = entries[0].isIntersecting;
+    }, { threshold: 0.3 }).observe(document.getElementById("demo"));
+  } else { demoVisible = true; }
+
+  var plays = [
+    function () { document.querySelector('[data-add="Desk lamp"]').click(); },
+    function () { document.querySelector('[data-add="Mech keyboard"]').click(); },
+    function () { document.getElementById("app-login").click(); },
+    function () { document.getElementById("app-remove").click(); }
+  ];
+  var playIdx = 0;
+  function autoplay() {
+    if (reduced) return;
+    if (demoVisible && !document.hidden && Date.now() - lastInteraction > 6000) {
+      plays[playIdx % plays.length]();
+      playIdx += 1;
+      lastInteraction = 0; /* autoplay doesn't count as user interaction */
+    }
+    setTimeout(autoplay, 3200);
+  }
+
+  /* boot: seed a couple of entries so the panel never reads empty */
+  dispatch("user", "login", function () { state.user.loggedIn = true; }, []);
+  dispatch("cart", "addItem", function () {
+    state.cart.items = 1; state.cart.total = 39; state.cart.lastAdded = "Desk lamp";
+    addedStack.push(39);
+  }, []);
+  render();
+  if (!reduced) setTimeout(autoplay, 2600);
+})();
+</script>
 </body>
 </html>
