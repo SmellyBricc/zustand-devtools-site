@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zustand DevTools — live state inspector for Chrome DevTools</title>
-<meta name="description" content="A Chrome DevTools panel showing live Zustand store state with zero code changes — plus an optional one-time-purchase action log with time-travel debugging.">
-<meta property="og:title" content="Zustand DevTools">
-<meta property="og:description" content="Live Zustand state in Chrome DevTools, zero code changes. Optional action log & time-travel, one-time purchase.">
+<title>Zustand DevTools — Trace Sessions for Zustand debugging in Chrome DevTools</title>
+<meta name="description" content="Record a Zustand bug once. See the exact state path that changed, the likely source call-site, and a session your teammate can inspect. Free store inspector and timeline; Pro Trace Sessions. Pre-launch.">
+<meta property="og:title" content="Zustand DevTools — Trace Sessions">
+<meta property="og:description" content="Record a Zustand bug once: path-level diffs, likely call-sites, shareable debugging sessions. Free inspector + timeline; Pro Trace Sessions (pre-launch).">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://smellybricc.github.io/zustand-devtools-site/">
 <meta property="og:image" content="https://smellybricc.github.io/zustand-devtools-site/og.png">
@@ -430,6 +430,17 @@
       to { opacity: 1; transform: none; }
     }
   }
+  .prelaunch {
+    max-width: 1080px; margin: 0 auto; padding: 9px 16px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg-raise); color: var(--ink-dim);
+    font: 500 13px var(--mono); text-align: center;
+  }
+  .illustration-label {
+    font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-faint); padding: 6px 18px 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .log-entry, .bump { animation: none !important; }
@@ -450,12 +461,17 @@
     </nav>
   </header>
 
+  <div class="prelaunch" role="status">
+    Pre-launch testing — Chrome Web Store submission and live checkout are in progress.
+    No payments are accepted yet.
+  </div>
+
   <section class="hero" style="padding-top: clamp(16px, 4vw, 48px);">
-    <h1>Watch your Zustand state <em>move</em>.</h1>
+    <h1>Record a Zustand bug <em>once</em>.</h1>
     <p class="lede">
-      A dedicated Chrome DevTools panel that shows every component's store state as it
-      changes — zero code changes, nothing added to your bundle. Free. Action log and
-      time-travel when you want them.
+      See the exact state path that changed, the likely source call-site, and a session
+      your teammate can inspect. Ordinary store inspection and the timeline are free —
+      Trace Sessions are the Pro workflow, with three full previews included.
     </p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">View source on GitHub</a>
@@ -466,8 +482,8 @@
     <ul class="fact-row">
       <li class="ok">MIT licensed</li>
       <li class="ok">No data collection</li>
-      <li class="ok">bridge v0.1.1 on npm</li>
-      <li>Chrome Web Store listing in progress</li>
+      <li class="ok">bridge v0.1.1 on npm · v0.2.0 in beta</li>
+      <li>Chrome Web Store listing in progress — not publicly installable yet</li>
     </ul>
 
     <div class="demo" id="demo">
@@ -494,19 +510,19 @@
           </div>
           <div class="cart-line"><span>cart total</span><span class="amt" id="app-total">€0</span></div>
         </div>
-        <p class="demo-hint">← a plain React app with two Zustand stores</p>
+        <p class="demo-hint">← Interactive product illustration: a plain app with two Zustand stores</p>
       </div>
 
       <div class="win dt" aria-label="Simulation of the Zustand DevTools panel">
         <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand</span></div>
         <div class="dt-tabs">
-          <span class="on">Live State</span><span>Action Log</span>
+          <span class="on">Stores</span><span>Timeline</span>
           <span class="dt-live"><i></i>connected</span>
         </div>
         <div class="dt-status">React 18.3.1 detected — live state below.</div>
         <div class="dt-body">
           <div class="dt-sec">
-            <h3>Live State</h3>
+            <h3>Stores</h3>
             <div class="dt-store">
               <div class="st-name">cart</div>
               <div class="dt-row"><span class="k">items:</span> <span class="v-num" id="dt-items">0</span> <span class="k">· total:</span> <span class="v-num" id="dt-total">0</span></div>
@@ -518,26 +534,28 @@
             </div>
           </div>
           <div class="dt-sec">
-            <h3>Action Log — click an entry to time-travel</h3>
+            <h3>Timeline — click an entry to time-travel (free)</h3>
             <div id="dt-log" aria-live="polite"></div>
           </div>
         </div>
-        <p class="demo-hint">↑ a live simulation of the panel, wired to the app on the left. <b>Try it.</b></p>
+        <p class="demo-hint">↑ <b>Interactive product illustration</b> — a simulation of the panel wired to the app on the left, not an extension screenshot. <b>Try it.</b></p>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>The free tier reads your app the way React DevTools does.</h2>
+    <h2>The free tier: accurate stores, timeline, safe time-travel.</h2>
     <p class="sub">
-      No wrapper, no middleware, no import. The extension installs a renderer hook before
-      React loads and walks the Fiber tree directly — so it works on any Zustand app you
-      open, including ones you don't own.
+      One line per store registers it with the extension for an accurate Stores view, a
+      searchable multi-store Timeline, and safe ID-based time-travel that restores the
+      original in-memory state. A zero-setup, experimental Component Hooks view is also
+      included — clearly labelled, because its values are read from React hooks and are
+      not guaranteed to be Zustand state.
     </p>
     <dl class="feature-rows">
       <div class="frow f-str">
-        <dt>zero_setup</dt>
-        <dd><b>Open DevTools, click the Zustand tab, done.</b> Every component's store-selected values, updating live as you interact with the page.</dd>
+        <dt>one_line_setup</dt>
+        <dd><b>Register a store once, inspect it forever.</b> <code>withDevtoolsBridge(creator, { name: 'cart' })</code> — an accurate live view per store, plus a zero-setup experimental hooks view for quick looks.</dd>
       </div>
       <div class="frow f-num">
         <dt>plays_nice</dt>
@@ -553,13 +571,16 @@
   <section id="pricing">
     <h2>Rewind the bug.</h2>
     <p class="sub">
-      The action log is the paid tier: a named history of every state change, the diff
-      between each step, and one-click time-travel — across all your stores in a single
-      timeline. One line to opt a store in, mirroring Zustand's own middleware shape.
+      <b>Zustand DevTools Pro — Trace Sessions</b> is the paid tier: press record while
+      you reproduce a bug, then inspect deep path-level diffs, best-effort source
+      call-sites, compare any two entries, filter, bookmark and annotate — and export a
+      redacted, versioned session a teammate can import and inspect offline (view-only,
+      validated, never executed). One line registers a store, mirroring Zustand's own
+      middleware shape.
     </p>
 
     <div class="win scrub unused" id="scrub">
-      <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand — Action Log</span><span style="margin-left:auto;">recorded session · 8 steps</span></div>
+      <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand — Trace Session</span><span style="margin-left:auto;">recorded session · 8 steps · illustration</span></div>
       <div class="scrub-body">
         <div class="sr-action">
           <span class="log-store" id="sc-store">[cart]</span>
@@ -579,7 +600,7 @@
           <span><span class="k">user.loggedIn:</span> <span class="v-bool" id="sc-logged">false</span></span>
         </div>
       </div>
-      <p class="demo-hint"><b>Drag the playhead</b> — every step here is a one-click jump in the real panel.</p>
+      <p class="demo-hint"><b>Interactive product illustration.</b> Drag the playhead — every step is a one-click jump in the real panel.</p>
     </div>
 
     <div class="paid-grid">
@@ -600,17 +621,22 @@
 );</code></pre>
       </div>
       <div class="price-block">
-        <div class="price-line"><span class="p">€9.99</span><span class="once">once · no subscription</span></div>
+        <div class="price-line"><span class="p">€9.99</span><span class="once">planned founding price · one-time · no subscription</span></div>
         <ul class="price-feats">
-          <li>Named action history with per-step diffs</li>
-          <li>One-click time-travel to any past state</li>
-          <li>Unified timeline across every store</li>
-          <li>History survives page reloads · JSON export</li>
+          <li>Unlimited Trace Sessions (3 full previews free)</li>
+          <li>Deep path-level diffs + best-effort call-sites</li>
+          <li>Compare any two entries · filters · bookmarks &amp; notes</li>
+          <li>Redacted session export · validated view-only import</li>
         </ul>
         <p class="price-note">
-          Sold through <a href="https://zustand-devtools-app.lemonsqueezy.com" target="_blank" rel="noopener">Lemon Squeezy</a>
-          (merchant of record — payment, VAT, invoices). One license, up to 5 device
-          activations, <a href="terms.html">14-day no-questions refund</a>.
+          <b>Pre-launch:</b> checkout is not open yet and no payments are accepted today.
+          When it opens, purchases will be processed by Lemon Squeezy (merchant of record —
+          payment, VAT, invoices): they generate your license key, you paste it into the
+          extension, and it activates through their License API. One license, planned
+          allowance of up to 5 device activations,
+          <a href="terms.html">14-day no-questions refund</a>. Until then:
+          <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">view the source</a>
+          or <a href="mailto:kuba.opoczka@gmail.com?subject=Zustand%20DevTools%20beta">join the beta</a>.
         </p>
       </div>
     </div>
@@ -623,10 +649,10 @@
         <p><b>Install the extension.</b> Chrome Web Store listing is in progress — until it lands, the <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a> and loads as an unpacked extension.</p>
       </div>
       <div class="step">
-        <p><b>Open DevTools on any Zustand app.</b> The Zustand tab shows live component state immediately — nothing to configure.</p>
+        <p><b>Open DevTools and click the Zustand tab.</b> Registered stores and the Timeline appear live; the experimental Component Hooks view works with zero setup (not guaranteed to be Zustand state).</p>
       </div>
       <div class="step">
-        <p><b>Want the action log?</b> Add <code>zustand-devtools-bridge</code> to a store, buy a license once, paste the key into the panel.</p>
+        <p><b>Want unlimited Trace Sessions?</b> Every install includes three full preview sessions. Pro unlocks unlimited ones once checkout opens — pre-launch today, nothing is charged.</p>
       </div>
     </div>
   </section>
@@ -635,8 +661,17 @@
     <h2>Questions people ask</h2>
     <div class="faq">
       <details>
+        <summary>Can I use it today?</summary>
+        <p>The project is in pre-launch testing. The Chrome Web Store listing is still in
+        progress (the extension is not publicly installable there yet), and the live
+        checkout has not opened — no real payments are being accepted. The
+        <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a>
+        and loads as an unpacked extension, and you can
+        <a href="mailto:kuba.opoczka@gmail.com?subject=Zustand%20DevTools%20beta">join the beta</a>.</p>
+      </details>
+      <details>
         <summary>What do I need for it to work?</summary>
-        <p>Chrome (or a Chromium browser that supports DevTools extensions), an app using React 16.8+ and Zustand 4+. The free inspector needs zero code changes; the action log needs the one-line <code>zustand-devtools-bridge</code> wrapper on each store you want logged.</p>
+        <p>Chrome (or a Chromium browser that supports DevTools extensions), an app using React 16.8+ and Zustand 4+. Accurate store inspection uses the one-line <code>zustand-devtools-bridge</code> wrapper per store; the experimental Component Hooks view is zero-setup but not guaranteed to show Zustand state.</p>
       </details>
       <details>
         <summary>Does it conflict with the React DevTools extension?</summary>
@@ -648,7 +683,7 @@
       </details>
       <details>
         <summary>How does the license work?</summary>
-        <p>One purchase, one license key, up to 5 device activations, no subscription and no expiry. Payment is processed by Lemon Squeezy as merchant of record, so VAT and invoices are handled automatically.</p>
+        <p>Once checkout opens: one €9.99 purchase, Lemon Squeezy generates and delivers a license key, you paste it into the extension, and it activates through their License API — planned allowance of up to 5 device activations, no subscription, no expiry. Live purchasing is not enabled during pre-launch.</p>
       </details>
       <details>
         <summary>What if it doesn't work for me?</summary>

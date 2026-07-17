@@ -35,13 +35,22 @@
 <body>
 <div class="wrap">
   <h1>Privacy Policy for Zustand DevTools</h1>
-  <div class="updated">Last updated: 2026-07-13</div>
+  <div class="updated">Last updated: 2026-07-16</div>
 
   <p>Zustand DevTools does not collect, store, or transmit your personal data or browsing history to any server.</p>
 
   <h2>What Data We Collect</h2>
   <p>None, by default. The extension reads component state from pages you inspect while Chrome DevTools is open with the "Zustand" panel active, and displays it in that same panel. This data never leaves your device — it's relayed entirely through the browser's own internal extension messaging, from the inspected page to your own open DevTools window.</p>
-  <p>If you use the optional <code>zustand-devtools-bridge</code> package and paste a license key into the Action Log tab to unlock the paid tier, that key is sent to Lemon Squeezy's license validation API to confirm it's valid, and the result is stored locally in your browser (<code>chrome.storage.local</code>) so you don't have to re-enter it. No other data accompanies that request.</p>
+  <p>Store state and trace data are processed locally. Recorded Trace Sessions and the
+  free-preview counter are stored locally in your browser (<code>chrome.storage.local</code>),
+  and the bridge keeps a bounded per-tab action history in the page's own
+  <code>sessionStorage</code>. None of that state is sent to Lemon Squeezy or to any
+  server. Trace files you export are ordinary local files; imported files are read
+  locally, validated, and never executed.</p>
+  <p>If you paste a license key into the Trace Sessions tab to unlock the Pro tier, that
+  key — and only that key — is sent to Lemon Squeezy's license activation API, and the
+  activation result is stored locally (<code>chrome.storage.local</code>) so you don't
+  have to re-enter it. No other data accompanies that request.</p>
 
   <h2>How Data Is Stored</h2>
   <ul>
@@ -52,7 +61,7 @@
   <h2>How Data Is Used</h2>
   <ul>
     <li>Component state is used solely to render the DevTools panel you're looking at.</li>
-    <li>A license key is used solely to unlock the Action Log/time-travel tab locally.</li>
+    <li>A license key is used solely to unlock Pro Trace Sessions locally.</li>
   </ul>
 
   <h2>Third-Party Services</h2>
