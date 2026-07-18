@@ -40,7 +40,7 @@
     --sans: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --ease: cubic-bezier(0.19, 1, 0.22, 1);
-    --z-sticky: 10; --z-toast: 50;
+    --z-sticky: 10; --z-overlay: 50;
   }
 
   * { box-sizing: border-box; }
@@ -62,7 +62,7 @@
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); }
 
   .skip-link {
-    position: absolute; left: 12px; top: -60px; z-index: var(--z-toast);
+    position: absolute; left: 12px; top: -60px; z-index: var(--z-overlay);
     background: var(--brand); color: #fff; font: 600 14px var(--sans);
     padding: 10px 16px; border-radius: 0 0 10px 10px; text-decoration: none;
     transition: top 0.15s var(--ease);
@@ -129,7 +129,6 @@
     font-family: var(--mono); font-weight: 500; font-size: 13.5px;
   }
   .btn-ghost:hover { border-color: var(--ink-faint); background: var(--bg-raise); }
-  .btn-ghost .cpy { color: var(--ink-faint); }
   .fact-row {
     display: flex; flex-wrap: wrap; gap: 8px 18px;
     font: 500 12.5px var(--mono); color: var(--ink-faint);
@@ -403,15 +402,6 @@
   }
   .foot-inner a:hover { color: var(--brand-bright); }
 
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
-    background: var(--bg-raise); border: 1px solid var(--line); border-radius: 10px;
-    font: 500 13px var(--mono); color: var(--ink); padding: 10px 16px;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
-    z-index: var(--z-toast);
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
   /* ---------- Responsive ---------- */
   @media (max-width: 880px) {
     .demo { grid-template-columns: 1fr; }
@@ -479,19 +469,17 @@
     </p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">View source on GitHub</a>
-      <button class="btn btn-ghost" id="npm-copy" type="button" aria-label="Copy the npm install command for zustand-devtools-bridge">
-        npm i zustand-devtools-bridge <span class="cpy" aria-hidden="true">⧉</span>
-      </button>
+      <a class="btn btn-ghost" href="https://github.com/SmellyBricc/zustand-devtools#install" target="_blank" rel="noopener">Read beta setup</a>
     </div>
     <ul class="fact-row">
       <li class="ok">MIT licensed</li>
       <li class="ok">No analytics or telemetry</li>
-      <li class="ok">bridge 0.1.1 on npm · 0.2.0 source on GitHub</li>
+      <li>npm serves bridge 0.1.1 · the beta needs 0.2.0, built from GitHub</li>
       <li>Private beta: not on the Chrome Web Store yet, no payments accepted</li>
     </ul>
 
     <div class="demo" id="demo">
-      <div class="win" aria-label="A small demo storefront app">
+      <div class="win" role="group" aria-label="A small demo storefront app">
         <div class="win-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="addr">localhost:3000</span></div>
         <div class="app-body">
           <div class="app-head">
@@ -517,7 +505,7 @@
         <p class="demo-hint">The app: a plain storefront with two Zustand stores</p>
       </div>
 
-      <div class="win dt" aria-label="Simulation of the Zustand DevTools panel">
+      <div class="win dt" role="group" aria-label="Simulation of the Zustand DevTools panel">
         <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand</span></div>
         <div class="dt-tabs">
           <span class="on">Stores</span><span>Timeline</span>
@@ -654,7 +642,12 @@
         <p><b>Install the extension.</b> Chrome Web Store launch preparation is in
         progress; the extension has not been submitted yet. Until the listing lands, the
         <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a>
-        and loads as an unpacked extension.</p>
+        and loads as an unpacked extension. The beta pairs extension 1.1.0 with bridge
+        0.2.0, built from that same repository (the README's
+        <a href="https://github.com/SmellyBricc/zustand-devtools#install" target="_blank" rel="noopener">beta setup</a>
+        walks through it). npm still serves bridge 0.1.1, which speaks the old protocol
+        and does not work with this extension, so don't install it for the beta; 0.2.0
+        will be published to npm before the public launch.</p>
       </div>
       <div class="step">
         <p><b>Open DevTools and click the Zustand tab.</b> Registered stores and the
@@ -686,7 +679,10 @@
         <p>Chrome (or a Chromium browser that supports DevTools extensions) and an app
         using React 16.8+ with Zustand 4 or 5. Accurate store inspection uses the
         one-line <code>zustand-devtools-bridge</code> wrapper per store; the experimental
-        Component Hooks view is zero-setup but not guaranteed to show Zustand state.</p>
+        Component Hooks view is zero-setup but not guaranteed to show Zustand state.
+        During the beta, build the bridge from
+        <a href="https://github.com/SmellyBricc/zustand-devtools#install" target="_blank" rel="noopener">the repository</a>:
+        the npm release is still 0.1.1, which does not work with extension 1.1.0.</p>
       </details>
       <details>
         <summary>Does it conflict with the React DevTools extension?</summary>
@@ -736,25 +732,10 @@
   </footer>
 </div>
 
-<div class="toast" id="toast" role="status">copied to clipboard</div>
-
 <script>
 (function () {
   "use strict";
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* ---------- npm copy button ---------- */
-  var copyBtn = document.getElementById("npm-copy");
-  var toast = document.getElementById("toast");
-  copyBtn.addEventListener("click", function () {
-    var cmd = "npm i zustand-devtools-bridge";
-    (navigator.clipboard ? navigator.clipboard.writeText(cmd) : Promise.reject())
-      .catch(function () {})
-      .finally(function () {
-        toast.classList.add("show");
-        setTimeout(function () { toast.classList.remove("show"); }, 1600);
-      });
-  });
 
   /* ---------- the living demo ---------- */
   /* items: [{name, price, qty}] so a second add produces the product's real
@@ -763,7 +744,6 @@
     cart: { items: [], total: 0 },
     user: { name: "Ada", loggedIn: false }
   };
-  var lastInteraction = 0;
   var isUserAction = false;
 
   var el = {
@@ -844,7 +824,7 @@
   }
 
   function announce(action, diffs) {
-    if (!isUserAction) return; /* ambient autoplay stays silent for screen readers */
+    if (!isUserAction) return; /* boot seeding stays silent for screen readers */
     el.announce.textContent = action + " recorded. " + diffs.map(function (d) { return d.text; }).join(", ");
   }
 
@@ -872,7 +852,6 @@
       render(["items", "total", "logged"]);
       logAction("panel", "time-travel", null, true);
       el.announce.textContent = "Time-travelled to the state after " + action + ".";
-      markInteraction();
       isUserAction = false;
     });
     el.log.prepend(entry);
@@ -887,11 +866,8 @@
     logAction(store, action, prev, false);
   }
 
-  function markInteraction() { lastInteraction = Date.now(); }
-
   function userDispatch(store, action, mutate, changed) {
     isUserAction = true;
-    markInteraction();
     dispatch(store, action, mutate, changed);
     isUserAction = false;
   }
@@ -924,61 +900,24 @@
     }, ["logged"]);
   });
 
-  /* ambient autoplay: only when visible, idle, tab focused, motion allowed.
-     Programmatic mutations, never synthetic clicks, so screen readers are
-     only ever told about actions the visitor actually made. */
-  var demoVisible = false;
-  if ("IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) {
-      demoVisible = entries[0].isIntersecting;
-    }, { threshold: 0.3 }).observe(document.getElementById("demo"));
-  } else { demoVisible = true; }
-
-  function autoAdd(name, price) {
-    dispatch("cart", "addItem", function () {
-      var existing = state.cart.items.find(function (it) { return it.name === name; });
-      if (existing) existing.qty += 1;
-      else state.cart.items.push({ name: name, price: price, qty: 1 });
-      state.cart.total += price;
-    }, ["items", "total"]);
-  }
-  var plays = [
-    function () { autoAdd("Desk lamp", 39); },
-    function () { autoAdd("Mech keyboard", 129); },
-    function () { autoAdd("Mech keyboard", 129); }, /* shows items[1].quantity */
-    function () {
-      dispatch("user", state.user.loggedIn ? "logout" : "login", function () {
-        state.user.loggedIn = !state.user.loggedIn;
-      }, ["logged"]);
-    },
-    function () {
-      if (!state.cart.items.length) return;
-      dispatch("cart", "removeItem", function () {
-        var last = state.cart.items[state.cart.items.length - 1];
-        state.cart.total = Math.max(0, state.cart.total - last.price);
-        if (last.qty > 1) last.qty -= 1;
-        else state.cart.items.pop();
-      }, ["items", "total"]);
-    }
-  ];
-  var playIdx = 0;
-  function autoplay() {
-    if (reduced) return;
-    if (demoVisible && !document.hidden && Date.now() - lastInteraction > 6000) {
-      plays[playIdx % plays.length]();
-      playIdx += 1;
-    }
-    setTimeout(autoplay, 3200);
-  }
-
-  /* boot: seed entries so the panel never reads empty */
-  dispatch("user", "login", function () { state.user.loggedIn = true; }, []);
-  dispatch("cart", "addItem", function () {
+  /* boot: seed a stable state so the panel never reads empty. No autoplay:
+     after this, the demo changes only when the visitor interacts. The last
+     seeded action already shows the nested-path diff the product is about. */
+  function seed(store, action, mutate) { dispatch(store, action, mutate, []); }
+  seed("user", "login", function () { state.user.loggedIn = true; });
+  seed("cart", "addItem", function () {
     state.cart.items.push({ name: "Desk lamp", price: 39, qty: 1 });
     state.cart.total = 39;
-  }, []);
+  });
+  seed("cart", "addItem", function () {
+    state.cart.items.push({ name: "Mech keyboard", price: 129, qty: 1 });
+    state.cart.total = 168;
+  });
+  seed("cart", "addItem", function () {
+    state.cart.items[1].qty = 2;
+    state.cart.total = 297;
+  });
   render();
-  if (!reduced) setTimeout(autoplay, 2600);
 
   /* ---------- hero boot sequence: the panel "connects" ---------- */
   if (!reduced) {
