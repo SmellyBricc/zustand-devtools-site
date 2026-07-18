@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zustand DevTools — Trace Sessions for Zustand debugging in Chrome DevTools</title>
-<meta name="description" content="Record a Zustand bug once. See the exact state path that changed, the likely source call-site, and a session your teammate can inspect. Free store inspector and timeline; Pro Trace Sessions. Pre-launch.">
-<meta property="og:title" content="Zustand DevTools — Trace Sessions">
-<meta property="og:description" content="Record a Zustand bug once: path-level diffs, likely call-sites, shareable debugging sessions. Free inspector + timeline; Pro Trace Sessions (pre-launch).">
+<title>Zustand DevTools: Trace Sessions for Zustand debugging in Chrome DevTools</title>
+<meta name="description" content="Record a Zustand bug once. See the exact state path that changed, the likely source call-site, and a session your teammate can inspect. Free store inspector and timeline; Pro Trace Sessions. Private beta.">
+<meta property="og:title" content="Zustand DevTools: Trace Sessions">
+<meta property="og:description" content="Record a Zustand bug once: path-level diffs, likely call-sites, shareable debugging sessions. Free inspector and timeline; Pro Trace Sessions (private beta).">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://smellybricc.github.io/zustand-devtools-site/">
 <meta property="og:image" content="https://smellybricc.github.io/zustand-devtools-site/og.png">
 <meta name="theme-color" content="#131420">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial,sans-serif' font-size='18' font-weight='800' fill='white' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
+<!-- External font request kept deliberately: Bricolage Grotesque + JetBrains Mono are
+     the committed brand typefaces; preconnect + swap keep the cost bounded. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,16 +27,16 @@
     --line: oklch(0.30 0.025 282);
     --line-soft: oklch(0.245 0.022 282);
     --ink: oklch(0.94 0.012 282);
-    --ink-dim: oklch(0.76 0.025 282);
-    --ink-faint: oklch(0.62 0.03 282);
+    --ink-dim: oklch(0.78 0.025 282);
+    --ink-faint: oklch(0.68 0.03 282);
     --brand: oklch(0.55 0.21 279);          /* the Z indigo, fill duty */
-    --brand-bright: oklch(0.74 0.16 281);   /* indigo for text/lines on dark */
-    --brand-glow: oklch(0.55 0.21 279 / 0.28);
+    --brand-bright: oklch(0.76 0.15 281);   /* indigo for text/lines on dark */
     --tok-str: oklch(0.78 0.11 55);         /* string orange  */
     --tok-num: oklch(0.82 0.11 160);        /* number green   */
     --tok-bool: oklch(0.78 0.10 255);       /* boolean blue   */
-    --tok-key: oklch(0.70 0.04 282);        /* property keys  */
+    --tok-key: oklch(0.72 0.04 282);        /* property keys  */
     --live: oklch(0.80 0.16 150);
+    --warn: oklch(0.80 0.13 75);            /* the "bug" marker amber */
     --sans: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --ease: cubic-bezier(0.19, 1, 0.22, 1);
@@ -59,6 +61,19 @@
 
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); }
 
+  .skip-link {
+    position: absolute; left: 12px; top: -60px; z-index: var(--z-toast);
+    background: var(--brand); color: #fff; font: 600 14px var(--sans);
+    padding: 10px 16px; border-radius: 0 0 10px 10px; text-decoration: none;
+    transition: top 0.15s var(--ease);
+  }
+  .skip-link:focus { top: 0; }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+
   /* ---------- Header ---------- */
   header {
     display: flex; align-items: center; gap: 12px;
@@ -66,33 +81,23 @@
   }
   .mark {
     width: 34px; height: 34px; border-radius: 9px; flex: none;
-    background: linear-gradient(160deg, oklch(0.62 0.21 279), oklch(0.50 0.22 280));
+    background: var(--brand);
     color: #fff; display: grid; place-items: center;
     font-family: var(--sans); font-weight: 800; font-size: 18px;
-    box-shadow: 0 0 24px var(--brand-glow);
   }
   .wordmark { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
   .wordmark span { color: var(--ink-faint); font-weight: 500; }
-  header nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
-  header nav a { color: var(--ink-dim); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+  header nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  header nav a {
+    color: var(--ink-dim); text-decoration: none; font-size: 14.5px; font-weight: 500;
+    padding: 10px 7px; border-radius: 6px;
+  }
   header nav a:hover { color: var(--ink); }
 
   /* ---------- Hero ---------- */
-  .hero { padding: clamp(28px, 6vw, 72px) 0 clamp(40px, 6vw, 72px); position: relative; }
-  .hero::before {
-    /* one quiet aurora, anchored to the brand hue; drifts gently with the pointer */
-    content: ""; position: absolute; inset: -20% 0 auto;
-    height: 70%;
-    background:
-      radial-gradient(38% 45% at 68% 18%, oklch(0.55 0.21 279 / 0.16), transparent 70%),
-      radial-gradient(30% 40% at 22% 8%, oklch(0.78 0.11 55 / 0.05), transparent 70%);
-    pointer-events: none;
-    transform: translate3d(var(--ax, 0px), var(--ay, 0px), 0);
-    will-change: transform;
-  }
-  .hero > * { position: relative; }
+  .hero { padding: clamp(16px, 4vw, 48px) 0 clamp(40px, 6vw, 72px); }
   h1 {
-    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-size: clamp(2.3rem, 6vw, 4.2rem);
     line-height: 1.04;
     letter-spacing: -0.03em;
     font-weight: 800;
@@ -108,11 +113,12 @@
     margin: 0 0 30px;
     text-wrap: pretty;
   }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
   .btn {
     display: inline-flex; align-items: center; gap: 9px;
     font: 600 15px var(--sans); text-decoration: none;
     padding: 12px 20px; border-radius: 10px; cursor: pointer;
+    min-height: 44px;
     transition: transform 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
   }
   .btn:active { transform: scale(0.98); }
@@ -127,10 +133,10 @@
   .fact-row {
     display: flex; flex-wrap: wrap; gap: 8px 18px;
     font: 500 12.5px var(--mono); color: var(--ink-faint);
+    padding: 0; margin: 0 0 20px;
   }
   .fact-row li { list-style: none; display: flex; align-items: center; gap: 7px; }
-  .fact-row { padding: 0; margin: 0 0 20px; }
-  .fact-row li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
+  .fact-row li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--line); flex: none; }
   .fact-row li.ok::before { background: var(--tok-num); }
 
   /* ---------- The living demo ---------- */
@@ -160,7 +166,7 @@
 
   /* fake app */
   .app-body { padding: 18px; display: grid; gap: 12px; align-content: start; flex: 1; }
-  .app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .app-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .app-head .shop { font-weight: 700; font-size: 15.5px; }
   .app-user { font: 500 12px var(--mono); color: var(--ink-faint); }
   .app-user b { color: var(--ink-dim); font-weight: 500; }
@@ -175,7 +181,7 @@
     margin-left: auto; flex: none;
     font: 600 12.5px var(--sans); color: var(--ink);
     background: var(--bg-well); border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 12px; cursor: pointer;
+    padding: 10px 12px; cursor: pointer; min-height: 40px;
     transition: border-color 0.15s var(--ease), transform 0.1s var(--ease);
   }
   .product button:hover, .app-actions button:hover { border-color: var(--brand-bright); }
@@ -208,7 +214,7 @@
   }
   .dt-tabs .dt-live { margin-left: auto; align-self: center; display: flex; align-items: center; gap: 6px; padding-right: 8px; font-size: 11px; color: var(--ink-faint); }
   .dt-live i {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--live);
+    width: 7px; height: 7px; border-radius: 50%; background: var(--live); flex: none;
     box-shadow: 0 0 0 3px oklch(0.80 0.16 150 / 0.18);
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -222,14 +228,15 @@
   .dt-body { display: grid; grid-template-rows: auto 1fr; flex: 1; min-height: 0; }
   .dt-sec { padding: 10px 16px 12px; }
   .dt-sec + .dt-sec { border-top: 1px solid var(--line-soft); }
-  .dt-sec h3 {
+  .dt-label {
     margin: 0 0 8px; font: 600 10.5px var(--mono); letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--ink-faint);
   }
   .dt-store { margin-bottom: 8px; }
   .dt-store:last-child { margin-bottom: 0; }
-  .dt-store .st-name { color: oklch(0.78 0.09 282); font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
+  .dt-store .st-name { color: oklch(0.80 0.09 282); font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
   .dt-row { font-size: 12.5px; line-height: 1.7; padding-left: 14px; }
+  .dt-row.indent { padding-left: 28px; }
   .dt-row .k { color: var(--tok-key); }
   .v-str { color: var(--tok-str); }
   .v-num { color: var(--tok-num); }
@@ -245,6 +252,7 @@
   .log-entry {
     border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 10px;
     cursor: pointer; background: var(--bg-well);
+    display: block; width: 100%; text-align: left; font: inherit; color: inherit;
     transition: border-color 0.15s var(--ease);
     animation: slide-in 0.35s var(--ease);
   }
@@ -255,12 +263,12 @@
     to { opacity: 1; transform: none; }
   }
   .log-head { display: flex; gap: 8px; align-items: baseline; font-size: 11.5px; }
-  .log-store { color: oklch(0.78 0.09 282); }
+  .log-store { color: oklch(0.80 0.09 282); }
   .log-action { color: var(--ink); font-weight: 600; }
   .log-time { margin-left: auto; color: var(--ink-faint); font-size: 10.5px; }
   .log-diff { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.6; }
-  .log-diff .add { color: var(--tok-num); }
   .log-diff .chg { color: var(--tok-str); }
+  .log-diff .add { color: var(--tok-num); }
   .log-entry.tt .log-action { color: var(--brand-bright); }
 
   /* ---------- Sections ---------- */
@@ -273,7 +281,7 @@
   }
   .sub { color: var(--ink-dim); max-width: 58ch; margin: 0 0 36px; font-size: 1.02rem; text-wrap: pretty; }
 
-  .feature-rows { display: grid; gap: 0; }
+  .feature-rows { display: grid; gap: 0; margin: 0; }
   .frow {
     display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 10px 28px;
     padding: 20px 0; border-top: 1px solid var(--line-soft);
@@ -286,21 +294,25 @@
   .frow.f-num dt { color: var(--tok-num); }
   .frow.f-bool dt { color: var(--tok-bool); }
 
-  /* ---------- time-travel scrubber (premium demo) ---------- */
+  /* ---------- time-travel scrubber: a recorded session with a planted bug ---------- */
   .scrub { margin-bottom: clamp(28px, 4vw, 44px); }
   .scrub-body { padding: 18px 20px 6px; display: grid; gap: 16px; }
-  .sr-action { display: flex; gap: 10px; align-items: baseline; font: 500 13px var(--mono); }
+  .sr-action { display: flex; gap: 10px; align-items: baseline; font: 500 13px var(--mono); flex-wrap: wrap; }
   .sr-action .name { color: var(--ink); font-weight: 600; font-size: 15px; }
-  .sr-action .log-store { color: oklch(0.78 0.09 282); }
+  .sr-action .log-store { color: oklch(0.80 0.09 282); }
   .sr-action .log-time { margin-left: auto; }
   .sr-diff { font: 400 12px var(--mono); color: var(--ink-faint); min-height: 20px; }
   .sr-diff .chg { color: var(--tok-str); }
+  .sr-diff .add { color: var(--tok-num); }
+  .sr-note { font: 500 12px var(--mono); color: var(--warn); min-height: 18px; }
 
   .sc-track { position: relative; padding: 6px 0 2px; }
   input[type="range"]#sc-range {
-    -webkit-appearance: none; appearance: none; width: 100%; height: 22px;
+    -webkit-appearance: none; appearance: none; width: 100%; height: 28px;
     background: transparent; cursor: pointer; margin: 0; display: block;
   }
+  /* Functional gradient: the hard two-stop fill renders how far through the
+     recorded session the playhead is. Data visualization, not decoration. */
   #sc-range::-webkit-slider-runnable-track {
     height: 4px; border-radius: 4px;
     background: linear-gradient(to right, var(--brand-bright) var(--fill, 100%), var(--line) var(--fill, 100%));
@@ -311,19 +323,12 @@
     -webkit-appearance: none; appearance: none;
     width: 18px; height: 18px; border-radius: 50%; margin-top: -7px;
     background: var(--brand-bright); border: 3px solid var(--bg-well);
-    box-shadow: 0 0 0 1px var(--brand-bright), 0 0 16px var(--brand-glow);
+    box-shadow: 0 0 0 1px var(--brand-bright);
   }
   #sc-range::-moz-range-thumb {
     width: 12px; height: 12px; border-radius: 50%;
     background: var(--brand-bright); border: 3px solid var(--bg-well);
-    box-shadow: 0 0 0 1px var(--brand-bright), 0 0 16px var(--brand-glow);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .scrub.unused #sc-range::-webkit-slider-thumb { animation: nudge 2s ease-in-out infinite; }
-    @keyframes nudge {
-      0%, 100% { box-shadow: 0 0 0 1px var(--brand-bright), 0 0 16px var(--brand-glow); }
-      50% { box-shadow: 0 0 0 4px oklch(0.74 0.16 281 / 0.35), 0 0 24px var(--brand-glow); }
-    }
+    box-shadow: 0 0 0 1px var(--brand-bright);
   }
   .sc-ticks {
     display: flex; justify-content: space-between; padding: 0 7px; margin-top: -4px;
@@ -347,15 +352,16 @@
   .c-kw { color: var(--tok-bool); } .c-fn { color: var(--brand-bright); }
   .c-str { color: var(--tok-str); } .c-cm { color: var(--ink-faint); }
   .price-block { display: grid; gap: 14px; }
-  .price-line { display: flex; align-items: baseline; gap: 12px; }
+  .price-line { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
   .price-line .p { font: 700 clamp(2rem, 4vw, 2.6rem)/1 var(--sans); letter-spacing: -0.02em; }
   .price-line .once { font: 500 13px var(--mono); color: var(--ink-faint); }
   .price-feats { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
   .price-feats li { display: flex; gap: 10px; color: var(--ink-dim); font-size: 15px; }
   .price-feats li::before { content: "→"; color: var(--brand-bright); flex: none; font-family: var(--mono); font-size: 13px; padding-top: 2px; }
   .price-note { font-size: 13px; color: var(--ink-faint); line-height: 1.65; }
+  .price-note b { color: var(--ink-dim); }
 
-  /* steps — a real sequence, numbering earned */
+  /* steps: a real install sequence, numbering earned */
   .steps { display: grid; gap: 14px; counter-reset: step; max-width: 720px; }
   .step {
     display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start;
@@ -375,25 +381,27 @@
   .faq details { border: 1px solid var(--line-soft); border-radius: 12px; background: var(--bg-raise); padding: 0 18px; }
   .faq summary {
     cursor: pointer; font-size: 15px; font-weight: 600; padding: 15px 26px 15px 0;
-    list-style: none; position: relative;
+    list-style: none; position: relative; min-height: 24px;
   }
   .faq summary::-webkit-details-marker { display: none; }
   .faq summary::after {
-    content: "+"; position: absolute; right: 0; top: 12px;
+    content: "+" / ""; position: absolute; right: 0; top: 12px;
     color: var(--brand-bright); font: 400 18px var(--mono);
     transition: transform 0.2s var(--ease);
   }
   .faq details[open] summary::after { transform: rotate(45deg); }
   .faq details p { margin: 0 0 16px; color: var(--ink-dim); font-size: 14.5px; max-width: 68ch; }
 
-  footer {
-    border-top: 1px solid var(--line-soft);
-    padding: 28px 0 48px;
-    display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: baseline;
+  footer { border-top: 1px solid var(--line-soft); padding: 28px 0 48px; }
+  .foot-inner {
+    display: flex; flex-wrap: wrap; gap: 10px 8px; align-items: baseline;
     font-size: 13px; color: var(--ink-faint);
   }
-  footer a { color: var(--ink-dim); text-decoration: none; }
-  footer a:hover { color: var(--brand-bright); }
+  .foot-inner a {
+    color: var(--ink-dim); text-decoration: none;
+    padding: 8px 7px; margin: -8px -2px; border-radius: 6px;
+  }
+  .foot-inner a:hover { color: var(--brand-bright); }
 
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
@@ -413,10 +421,14 @@
   @media (max-width: 560px) {
     header nav a.gh-link { display: none; }
     .frow { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
+    .sr-action .log-time { margin-left: 0; width: 100%; }
+  }
+  @media (pointer: coarse) {
+    .product button, .app-actions button { min-height: 44px; }
+    header nav a { padding: 12px 10px; }
   }
 
   /* ---------- Motion discipline ---------- */
-  .reveal { opacity: 1; }
   @media (prefers-reduced-motion: no-preference) {
     .hero h1, .hero .lede, .hero .cta-row, .hero .fact-row {
       animation: rise 0.7s var(--ease) both;
@@ -430,12 +442,6 @@
       to { opacity: 1; transform: none; }
     }
   }
-  .prelaunch {
-    max-width: 1080px; margin: 0 auto; padding: 9px 16px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: var(--bg-raise); color: var(--ink-dim);
-    font: 500 13px var(--mono); text-align: center;
-  }
   .illustration-label {
     font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--ink-faint); padding: 6px 18px 0;
@@ -444,63 +450,61 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .log-entry, .bump { animation: none !important; }
-    * { transition-duration: 0.01ms !important; }
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   }
 </style>
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <div class="wrap">
   <header>
     <div class="mark" aria-hidden="true">Z</div>
     <div class="wordmark">Zustand <span>DevTools</span></div>
-    <nav>
+    <nav aria-label="Main">
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
       <a class="gh-link" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
 
-  <div class="prelaunch" role="status">
-    Pre-launch testing — Chrome Web Store submission and live checkout are in progress.
-    No payments are accepted yet.
-  </div>
-
-  <section class="hero" style="padding-top: clamp(16px, 4vw, 48px);">
+  <main id="main">
+  <section class="hero">
     <h1>Record a Zustand bug <em>once</em>.</h1>
     <p class="lede">
       See the exact state path that changed, the likely source call-site, and a session
-      your teammate can inspect. Ordinary store inspection and the timeline are free —
-      Trace Sessions are the Pro workflow, with three full previews included.
+      your teammate can inspect. Store inspection and the timeline are free. Trace
+      Sessions are the Pro workflow, with three full previews included.
     </p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">View source on GitHub</a>
-      <button class="btn btn-ghost" id="npm-copy" type="button" aria-label="Copy npm install command">
-        npm i zustand-devtools-bridge <span class="cpy">⧉</span>
+      <button class="btn btn-ghost" id="npm-copy" type="button" aria-label="Copy the npm install command for zustand-devtools-bridge">
+        npm i zustand-devtools-bridge <span class="cpy" aria-hidden="true">⧉</span>
       </button>
     </div>
     <ul class="fact-row">
       <li class="ok">MIT licensed</li>
-      <li class="ok">No data collection</li>
-      <li class="ok">bridge v0.1.1 on npm · v0.2.0 in beta</li>
-      <li>Chrome Web Store listing in progress — not publicly installable yet</li>
+      <li class="ok">No analytics or telemetry</li>
+      <li class="ok">bridge 0.1.1 on npm · 0.2.0 source on GitHub</li>
+      <li>Private beta: not on the Chrome Web Store yet, no payments accepted</li>
     </ul>
 
     <div class="demo" id="demo">
       <div class="win" aria-label="A small demo storefront app">
-        <div class="win-bar"><span class="dots"><i></i><i></i><i></i></span><span class="addr">localhost:3000</span></div>
+        <div class="win-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="addr">localhost:3000</span></div>
         <div class="app-body">
           <div class="app-head">
             <span class="shop">Acme Storefront</span>
             <span class="app-user">user: <b id="app-user-name">Ada</b> · <b id="app-user-status">logged out</b></span>
           </div>
           <div class="product">
-            <span class="swatch" style="background: linear-gradient(140deg, oklch(0.75 0.12 55), oklch(0.6 0.14 40));"></span>
+            <span class="swatch" style="background: var(--tok-str);" aria-hidden="true"></span>
             <span><span class="p-name">Desk lamp</span><br><span class="p-price">€39</span></span>
             <button type="button" data-add="Desk lamp" data-price="39">Add to cart</button>
           </div>
           <div class="product">
-            <span class="swatch" style="background: linear-gradient(140deg, oklch(0.72 0.12 255), oklch(0.55 0.16 280));"></span>
+            <span class="swatch" style="background: var(--tok-bool);" aria-hidden="true"></span>
             <span><span class="p-name">Mech keyboard</span><br><span class="p-price">€129</span></span>
             <button type="button" data-add="Mech keyboard" data-price="129">Add to cart</button>
           </div>
@@ -510,23 +514,23 @@
           </div>
           <div class="cart-line"><span>cart total</span><span class="amt" id="app-total">€0</span></div>
         </div>
-        <p class="demo-hint">← Interactive product illustration: a plain app with two Zustand stores</p>
+        <p class="demo-hint">The app: a plain storefront with two Zustand stores</p>
       </div>
 
       <div class="win dt" aria-label="Simulation of the Zustand DevTools panel">
         <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand</span></div>
         <div class="dt-tabs">
           <span class="on">Stores</span><span>Timeline</span>
-          <span class="dt-live"><i></i>connected</span>
+          <span class="dt-live"><i aria-hidden="true"></i>connected</span>
         </div>
-        <div class="dt-status">React 18.3.1 detected — live state below.</div>
+        <div class="dt-status">React 18.3.1 detected. Live state below.</div>
         <div class="dt-body">
           <div class="dt-sec">
-            <h3>Stores</h3>
+            <p class="dt-label">Stores</p>
             <div class="dt-store">
               <div class="st-name">cart</div>
-              <div class="dt-row"><span class="k">items:</span> <span class="v-num" id="dt-items">0</span> <span class="k">· total:</span> <span class="v-num" id="dt-total">0</span></div>
-              <div class="dt-row"><span class="k">lastAdded:</span> <span class="v-str" id="dt-last">null</span></div>
+              <div id="dt-items"></div>
+              <div class="dt-row"><span class="k">total:</span> <span class="v-num" id="dt-total">0</span></div>
             </div>
             <div class="dt-store">
               <div class="st-name">user</div>
@@ -534,73 +538,74 @@
             </div>
           </div>
           <div class="dt-sec">
-            <h3>Timeline — click an entry to time-travel (free)</h3>
-            <div id="dt-log" aria-live="polite"></div>
+            <p class="dt-label">Timeline · click an entry to time-travel (free)</p>
+            <div id="dt-log"></div>
           </div>
         </div>
-        <p class="demo-hint">↑ <b>Interactive product illustration</b> — a simulation of the panel wired to the app on the left, not an extension screenshot. <b>Try it.</b></p>
+        <p class="demo-hint"><b>Interactive product illustration.</b> A simulation of the panel wired to the app beside it, not an extension screenshot. <b>Try it:</b> add the keyboard twice and watch the <b>items[1].quantity</b> path appear.</p>
       </div>
     </div>
+    <div class="visually-hidden" role="status" id="demo-announce"></div>
   </section>
 
-  <section>
-    <h2>The free tier: accurate stores, timeline, safe time-travel.</h2>
+  <section aria-labelledby="free-h">
+    <h2 id="free-h">The free tier: accurate stores, timeline, safe time travel.</h2>
     <p class="sub">
       One line per store registers it with the extension for an accurate Stores view, a
-      searchable multi-store Timeline, and safe ID-based time-travel that restores the
+      searchable multi-store Timeline, and safe ID-based time travel that restores the
       original in-memory state. A zero-setup, experimental Component Hooks view is also
-      included — clearly labelled, because its values are read from React hooks and are
+      included and clearly labelled, because its values are read from React hooks and are
       not guaranteed to be Zustand state.
     </p>
     <dl class="feature-rows">
       <div class="frow f-str">
         <dt>one_line_setup</dt>
-        <dd><b>Register a store once, inspect it forever.</b> <code>withDevtoolsBridge(creator, { name: 'cart' })</code> — an accurate live view per store, plus a zero-setup experimental hooks view for quick looks.</dd>
+        <dd><b>Register a store once, inspect it from then on.</b> <code>withDevtoolsBridge(creator, { name: 'cart' })</code> gives you an accurate live view per store, plus the zero-setup experimental hooks view for quick looks.</dd>
       </div>
       <div class="frow f-num">
         <dt>plays_nice</dt>
-        <dd><b>Chains the DevTools hook instead of clobbering it</b> — the real React DevTools keeps working next to it, whichever loads first.</dd>
+        <dd><b>Chains the DevTools hook instead of clobbering it.</b> The real React DevTools keeps working next to it, whichever loads first.</dd>
       </div>
       <div class="frow f-bool">
         <dt>stays_local</dt>
-        <dd><b>State never leaves your machine.</b> Data flows from the inspected page to your own panel and nowhere else — no server, no analytics, no telemetry.</dd>
+        <dd><b>State never leaves your machine.</b> Data flows from the inspected page to your own panel and nowhere else: no server, no analytics, no telemetry.</dd>
       </div>
     </dl>
   </section>
 
-  <section id="pricing">
-    <h2>Rewind the bug.</h2>
+  <section id="pricing" aria-labelledby="pricing-h">
+    <h2 id="pricing-h">Rewind the bug.</h2>
     <p class="sub">
-      <b>Zustand DevTools Pro — Trace Sessions</b> is the paid tier: press record while
+      <b>Zustand DevTools Pro: Trace Sessions</b> is the paid tier. Press record while
       you reproduce a bug, then inspect deep path-level diffs, best-effort source
-      call-sites, compare any two entries, filter, bookmark and annotate — and export a
+      call-sites, compare any two entries, filter, bookmark and annotate. Export a
       redacted, versioned session a teammate can import and inspect offline (view-only,
-      validated, never executed). One line registers a store, mirroring Zustand's own
-      middleware shape.
+      validated, never executed).
     </p>
 
-    <div class="win scrub unused" id="scrub">
-      <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand — Trace Session</span><span style="margin-left:auto;">recorded session · 8 steps · illustration</span></div>
+    <div class="win scrub" id="scrub">
+      <div class="win-bar"><span style="color: var(--ink-dim);">DevTools</span><span class="addr">Zustand · Trace Session</span><span style="margin-left:auto;">recorded session · 6 steps</span></div>
       <div class="scrub-body">
         <div class="sr-action">
           <span class="log-store" id="sc-store">[cart]</span>
           <span class="name" id="sc-action">checkout</span>
-          <span class="log-time" id="sc-step">step 8 / 8</span>
+          <span class="log-time" id="sc-step">step 6 / 6</span>
         </div>
         <div class="sr-diff" id="sc-diff"></div>
+        <p class="sr-note" id="sc-note"></p>
         <div class="sc-track">
-          <input type="range" id="sc-range" min="0" max="7" step="1" value="7"
+          <input type="range" id="sc-range" min="0" max="5" step="1" value="5"
                  aria-label="Scrub through the recorded debugging session">
           <div class="sc-ticks" id="sc-ticks" aria-hidden="true"></div>
         </div>
         <div class="sc-state">
-          <span><span class="k">cart.items:</span> <span class="v-num" id="sc-items">0</span></span>
-          <span><span class="k">cart.total:</span> <span class="v-num" id="sc-total">0</span></span>
-          <span><span class="k">cart.lastAdded:</span> <span class="v-str" id="sc-last">null</span></span>
+          <span><span class="k">items:</span> <span class="v-num" id="sc-items">0</span></span>
+          <span><span class="k">items[1].quantity:</span> <span class="v-num" id="sc-qty">0</span></span>
+          <span><span class="k">total:</span> <span class="v-num" id="sc-total">0</span></span>
           <span><span class="k">user.loggedIn:</span> <span class="v-bool" id="sc-logged">false</span></span>
         </div>
       </div>
-      <p class="demo-hint"><b>Interactive product illustration.</b> Drag the playhead — every step is a one-click jump in the real panel.</p>
+      <p class="demo-hint"><b>Interactive product illustration.</b> This session contains a real bug: drag the playhead to step 4 and find the moment the total went wrong. Every step is a one-click jump in the real panel.</p>
     </div>
 
     <div class="paid-grid">
@@ -614,7 +619,7 @@
       items: [],
       addItem: (item) =>
         <span class="c-fn">set</span>((s) => ({ items: [...s.items, item] }),
-            <span class="c-kw">false</span>, <span class="c-str">'addItem'</span>),  <span class="c-cm">// ← named in the log</span>
+            <span class="c-kw">false</span>, <span class="c-str">'addItem'</span>),  <span class="c-cm">// named in the log</span>
     }),
     { name: <span class="c-str">'cart'</span> }
   )
@@ -624,16 +629,16 @@
         <div class="price-line"><span class="p">€9.99</span><span class="once">planned founding price · one-time · no subscription</span></div>
         <ul class="price-feats">
           <li>Unlimited Trace Sessions (3 full previews free)</li>
-          <li>Deep path-level diffs + best-effort call-sites</li>
-          <li>Compare any two entries · filters · bookmarks &amp; notes</li>
+          <li>Deep path-level diffs and best-effort call-sites</li>
+          <li>Compare any two entries · filters · bookmarks and notes</li>
           <li>Redacted session export · validated view-only import</li>
         </ul>
         <p class="price-note">
-          <b>Pre-launch:</b> checkout is not open yet and no payments are accepted today.
-          When it opens, purchases will be processed by Lemon Squeezy (merchant of record —
-          payment, VAT, invoices): they generate your license key, you paste it into the
-          extension, and it activates through their License API. One license, planned
-          allowance of up to 5 device activations,
+          <b>Private beta:</b> checkout is not open and no payments are accepted today.
+          When it opens, purchases will be processed by Lemon Squeezy as merchant of
+          record (payment, VAT, invoices). They generate your license key, you paste it
+          into the extension, and it activates through their License API. One license,
+          planned allowance of up to 5 device activations,
           <a href="terms.html">14-day no-questions refund</a>. Until then:
           <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">view the source</a>
           or <a href="mailto:kuba.opoczka@gmail.com?subject=Zustand%20DevTools%20beta">join the beta</a>.
@@ -642,64 +647,92 @@
     </div>
   </section>
 
-  <section>
-    <h2>Get started</h2>
+  <section aria-labelledby="start-h">
+    <h2 id="start-h">Get started</h2>
     <div class="steps">
       <div class="step">
-        <p><b>Install the extension.</b> Chrome Web Store listing is in progress — until it lands, the <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a> and loads as an unpacked extension.</p>
+        <p><b>Install the extension.</b> Chrome Web Store launch preparation is in
+        progress; the extension has not been submitted yet. Until the listing lands, the
+        <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a>
+        and loads as an unpacked extension.</p>
       </div>
       <div class="step">
-        <p><b>Open DevTools and click the Zustand tab.</b> Registered stores and the Timeline appear live; the experimental Component Hooks view works with zero setup (not guaranteed to be Zustand state).</p>
+        <p><b>Open DevTools and click the Zustand tab.</b> Registered stores and the
+        Timeline appear live; the experimental Component Hooks view works with zero setup
+        (not guaranteed to be Zustand state).</p>
       </div>
       <div class="step">
-        <p><b>Want unlimited Trace Sessions?</b> Every install includes three full preview sessions. Pro unlocks unlimited ones once checkout opens — pre-launch today, nothing is charged.</p>
+        <p><b>Want unlimited Trace Sessions?</b> Every install includes three full
+        preview sessions. Pro unlocks unlimited ones once checkout opens. During the
+        private beta nothing is charged.</p>
       </div>
     </div>
   </section>
 
-  <section id="faq">
-    <h2>Questions people ask</h2>
+  <section id="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">Questions people ask</h2>
     <div class="faq">
       <details>
         <summary>Can I use it today?</summary>
-        <p>The project is in pre-launch testing. The Chrome Web Store listing is still in
-        progress (the extension is not publicly installable there yet), and the live
-        checkout has not opened — no real payments are being accepted. The
+        <p>The project is in private beta. Chrome Web Store launch preparation is in
+        progress, but the extension has not been submitted yet, so it is not installable
+        from the store. Checkout is closed and no payments are accepted. The
         <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">source is on GitHub</a>
         and loads as an unpacked extension, and you can
         <a href="mailto:kuba.opoczka@gmail.com?subject=Zustand%20DevTools%20beta">join the beta</a>.</p>
       </details>
       <details>
         <summary>What do I need for it to work?</summary>
-        <p>Chrome (or a Chromium browser that supports DevTools extensions), an app using React 16.8+ and Zustand 4+. Accurate store inspection uses the one-line <code>zustand-devtools-bridge</code> wrapper per store; the experimental Component Hooks view is zero-setup but not guaranteed to show Zustand state.</p>
+        <p>Chrome (or a Chromium browser that supports DevTools extensions) and an app
+        using React 16.8+ with Zustand 4 or 5. Accurate store inspection uses the
+        one-line <code>zustand-devtools-bridge</code> wrapper per store; the experimental
+        Component Hooks view is zero-setup but not guaranteed to show Zustand state.</p>
       </details>
       <details>
         <summary>Does it conflict with the React DevTools extension?</summary>
-        <p>No — it chains onto the same renderer hook React DevTools uses instead of replacing it, so both extensions work side by side regardless of which loads first.</p>
+        <p>No. It chains onto the same renderer hook React DevTools uses instead of
+        replacing it, so both extensions work side by side regardless of which loads
+        first.</p>
       </details>
       <details>
         <summary>What data does it collect?</summary>
-        <p>None. Component state never leaves your machine — it flows only from the inspected page to your own open DevTools panel. The single network request the extension can make is validating a license key you paste in. Full details in the <a href="privacy.html">privacy policy</a>.</p>
+        <p>No analytics and no telemetry. Application state stays on your machine: it
+        flows from the inspected page to your own DevTools panel, and what the extension
+        keeps (recent Trace Sessions, the free-preview counter, a license record) lives
+        in your browser's local extension storage. The bridge keeps a bounded per-tab
+        history in the inspected page's own sessionStorage. The only network requests
+        are ones you trigger yourself: activating a license sends the key and a generic
+        instance name to Lemon Squeezy. Full details in the
+        <a href="privacy.html">privacy policy</a>.</p>
       </details>
       <details>
         <summary>How does the license work?</summary>
-        <p>Once checkout opens: one €9.99 purchase, Lemon Squeezy generates and delivers a license key, you paste it into the extension, and it activates through their License API — planned allowance of up to 5 device activations, no subscription, no expiry. Live purchasing is not enabled during pre-launch.</p>
+        <p>Once checkout opens: one €9.99 purchase, Lemon Squeezy generates and delivers
+        a license key, you paste it into the extension, and it activates through their
+        License API. Planned allowance of up to 5 device activations, no subscription,
+        no expiry. Live purchasing is not enabled during the private beta.</p>
       </details>
       <details>
         <summary>What if it doesn't work for me?</summary>
-        <p>Email within 14 days of purchase for a full refund — no questions asked. Bug reports are welcome on <a href="https://github.com/SmellyBricc/zustand-devtools/issues" target="_blank" rel="noopener">GitHub issues</a> either way. See <a href="terms.html">terms &amp; refunds</a>.</p>
+        <p>Email within 14 days of purchase for a full refund, no questions asked. Bug
+        reports are welcome on
+        <a href="https://github.com/SmellyBricc/zustand-devtools/issues" target="_blank" rel="noopener">GitHub issues</a>
+        either way. See <a href="terms.html">terms and refunds</a>.</p>
       </details>
     </div>
   </section>
+  </main>
 
   <footer>
-    <span>© 2026 Zustand DevTools</span>
-    <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener">npm</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms &amp; refunds</a>
-    <a href="mailto:kuba.opoczka@gmail.com">Contact</a>
-    <span>Not affiliated with the Zustand or pmndrs projects</span>
+    <nav class="foot-inner" aria-label="Footer">
+      <span>© 2026 Zustand DevTools</span>
+      <a href="https://github.com/SmellyBricc/zustand-devtools" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.npmjs.com/package/zustand-devtools-bridge" target="_blank" rel="noopener">npm</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms &amp; refunds</a>
+      <a href="mailto:kuba.opoczka@gmail.com">Contact</a>
+      <span>Not affiliated with the Zustand or pmndrs projects</span>
+    </nav>
   </footer>
 </div>
 
@@ -724,23 +757,24 @@
   });
 
   /* ---------- the living demo ---------- */
+  /* items: [{name, price, qty}] so a second add produces the product's real
+     pitch: a nested path diff like items[1].quantity: 1 -> 2. */
   var state = {
-    cart: { items: 0, total: 0, lastAdded: null },
+    cart: { items: [], total: 0 },
     user: { name: "Ada", loggedIn: false }
   };
-  var history = [];
   var lastInteraction = 0;
-  var addedStack = [];
+  var isUserAction = false;
 
   var el = {
     items: document.getElementById("dt-items"),
     total: document.getElementById("dt-total"),
-    last: document.getElementById("dt-last"),
     name: document.getElementById("dt-name"),
     logged: document.getElementById("dt-logged"),
     log: document.getElementById("dt-log"),
     appTotal: document.getElementById("app-total"),
-    appUserStatus: document.getElementById("app-user-status")
+    appUserStatus: document.getElementById("app-user-status"),
+    announce: document.getElementById("demo-announce")
   };
 
   function fmtVal(v) {
@@ -750,61 +784,100 @@
   }
 
   function bump(node) {
-    if (reduced) return;
+    if (reduced || !node) return;
     node.classList.remove("bump");
     void node.offsetWidth;
     node.classList.add("bump");
   }
 
-  function render(changedKeys) {
-    el.items.textContent = state.cart.items;
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function render(changed) {
+    var rows = "";
+    if (!state.cart.items.length) {
+      rows = '<div class="dt-row"><span class="k">items:</span> <span class="v-num">[ ]</span></div>';
+    } else {
+      rows = '<div class="dt-row"><span class="k">items:</span> <span class="v-num">[ ' + state.cart.items.length + ' ]</span></div>';
+      state.cart.items.forEach(function (it, i) {
+        rows += '<div class="dt-row indent"><span class="k">[' + i + ']</span> ' +
+          '<span class="v-str">"' + esc(it.name) + '"</span> ' +
+          '<span class="k">· quantity:</span> <span class="v-num" data-item-qty="' + i + '">' + it.qty + "</span></div>";
+      });
+    }
+    el.items.innerHTML = rows;
     el.total.textContent = state.cart.total;
-    el.last.textContent = fmtVal(state.cart.lastAdded);
     el.name.textContent = fmtVal(state.user.name);
     el.logged.textContent = String(state.user.loggedIn);
     el.appTotal.textContent = "€" + state.cart.total;
     el.appUserStatus.textContent = state.user.loggedIn ? "logged in" : "logged out";
-    (changedKeys || []).forEach(function (k) { if (el[k]) bump(el[k]); });
+    (changed || []).forEach(function (sel) {
+      bump(typeof sel === "string" ? el[sel] : sel);
+    });
   }
 
   function snapshot() { return JSON.parse(JSON.stringify(state)); }
 
-  function diffText(prev, next, store) {
+  /* Path-level diff over the known demo shape: items[i].quantity, items[i]
+     added/removed, total, user fields. Mirrors what the real panel derives. */
+  function diffPaths(prev, next) {
     var out = [];
-    var a = prev[store], b = next[store];
-    Object.keys(b).forEach(function (k) {
-      if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) {
-        out.push('<span class="chg">' + k + ": " + fmtVal(a[k]) + " → " + fmtVal(b[k]) + "</span>");
+    var a = prev.cart.items, b = next.cart.items;
+    var i;
+    for (i = 0; i < Math.max(a.length, b.length); i++) {
+      if (i >= a.length) out.push({ cls: "add", text: "+ items[" + i + "] (" + b[i].name + ")" });
+      else if (i >= b.length) out.push({ cls: "chg", text: "- items[" + i + "]" });
+      else if (a[i].qty !== b[i].qty) {
+        out.push({ cls: "chg", text: "items[" + i + "].quantity: " + a[i].qty + " → " + b[i].qty });
+      }
+    }
+    if (prev.cart.total !== next.cart.total) {
+      out.push({ cls: "chg", text: "total: " + prev.cart.total + " → " + next.cart.total });
+    }
+    Object.keys(next.user).forEach(function (k) {
+      if (prev.user[k] !== next.user[k]) {
+        out.push({ cls: "chg", text: "user." + k + ": " + fmtVal(prev.user[k]) + " → " + fmtVal(next.user[k]) });
       }
     });
-    return out.join(" &nbsp; ");
+    return out;
+  }
+
+  function announce(action, diffs) {
+    if (!isUserAction) return; /* ambient autoplay stays silent for screen readers */
+    el.announce.textContent = action + " recorded. " + diffs.map(function (d) { return d.text; }).join(", ");
   }
 
   function logAction(store, action, prevSnap, isTT) {
     var snap = snapshot();
+    var diffs = prevSnap ? diffPaths(prevSnap, snap) : [];
     var entry = document.createElement("button");
     entry.type = "button";
     entry.className = "log-entry" + (isTT ? " tt" : "");
-    entry.style.display = "block"; entry.style.width = "100%"; entry.style.textAlign = "left";
-    entry.style.font = "inherit"; entry.style.color = "inherit";
     var t = new Date();
     var time = t.toTimeString().slice(0, 8);
     entry.innerHTML =
       '<span class="log-head"><span class="log-store">[' + store + ']</span>' +
-      '<span class="log-action">' + action + "</span>" +
+      '<span class="log-action">' + esc(action) + "</span>" +
       '<span class="log-time">' + time + "</span></span>" +
-      (prevSnap ? '<div class="log-diff">' + diffText(prevSnap, snap, store) + "</div>" : "");
+      (diffs.length
+        ? '<div class="log-diff">' + diffs.map(function (d) {
+            return '<span class="' + d.cls + '">' + esc(d.text) + "</span>";
+          }).join(" &nbsp; ") + "</div>"
+        : "");
     var snapCopy = snap;
     entry.addEventListener("click", function () {
-      var prev = snapshot();
+      isUserAction = true;
       state = JSON.parse(JSON.stringify(snapCopy));
-      render(["items", "total", "last", "name", "logged"]);
-      logAction("panel", "⤺ time-travel", null, true);
+      render(["items", "total", "logged"]);
+      logAction("panel", "time-travel", null, true);
+      el.announce.textContent = "Time-travelled to the state after " + action + ".";
       markInteraction();
+      isUserAction = false;
     });
     el.log.prepend(entry);
     while (el.log.children.length > 9) el.log.removeChild(el.log.lastChild);
-    history.push({ action: action, snap: snap });
+    if (!isTT) announce(action, diffs);
   }
 
   function dispatch(store, action, mutate, changed) {
@@ -816,38 +889,44 @@
 
   function markInteraction() { lastInteraction = Date.now(); }
 
+  function userDispatch(store, action, mutate, changed) {
+    isUserAction = true;
+    markInteraction();
+    dispatch(store, action, mutate, changed);
+    isUserAction = false;
+  }
+
   /* app wiring */
   document.querySelectorAll("[data-add]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      markInteraction();
       var name = btn.getAttribute("data-add");
       var price = Number(btn.getAttribute("data-price"));
-      addedStack.push(price);
-      dispatch("cart", "addItem", function () {
-        state.cart.items += 1;
+      userDispatch("cart", "addItem", function () {
+        var existing = state.cart.items.find(function (it) { return it.name === name; });
+        if (existing) existing.qty += 1;
+        else state.cart.items.push({ name: name, price: price, qty: 1 });
         state.cart.total += price;
-        state.cart.lastAdded = name;
-      }, ["items", "total", "last"]);
+      }, ["items", "total"]);
     });
   });
   document.getElementById("app-remove").addEventListener("click", function () {
-    markInteraction();
-    if (!state.cart.items) return;
-    var price = addedStack.pop() || 0;
-    dispatch("cart", "removeItem", function () {
-      state.cart.items -= 1;
-      state.cart.total = Math.max(0, state.cart.total - price);
-      if (!state.cart.items) state.cart.lastAdded = null;
-    }, ["items", "total", "last"]);
+    if (!state.cart.items.length) return;
+    userDispatch("cart", "removeItem", function () {
+      var last = state.cart.items[state.cart.items.length - 1];
+      state.cart.total = Math.max(0, state.cart.total - last.price);
+      if (last.qty > 1) last.qty -= 1;
+      else state.cart.items.pop();
+    }, ["items", "total"]);
   });
   document.getElementById("app-login").addEventListener("click", function () {
-    markInteraction();
-    dispatch("user", state.user.loggedIn ? "logout" : "login", function () {
+    userDispatch("user", state.user.loggedIn ? "logout" : "login", function () {
       state.user.loggedIn = !state.user.loggedIn;
     }, ["logged"]);
   });
 
-  /* ambient autoplay: only when visible, idle, tab focused, motion allowed */
+  /* ambient autoplay: only when visible, idle, tab focused, motion allowed.
+     Programmatic mutations, never synthetic clicks, so screen readers are
+     only ever told about actions the visitor actually made. */
   var demoVisible = false;
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (entries) {
@@ -855,11 +934,32 @@
     }, { threshold: 0.3 }).observe(document.getElementById("demo"));
   } else { demoVisible = true; }
 
+  function autoAdd(name, price) {
+    dispatch("cart", "addItem", function () {
+      var existing = state.cart.items.find(function (it) { return it.name === name; });
+      if (existing) existing.qty += 1;
+      else state.cart.items.push({ name: name, price: price, qty: 1 });
+      state.cart.total += price;
+    }, ["items", "total"]);
+  }
   var plays = [
-    function () { document.querySelector('[data-add="Desk lamp"]').click(); },
-    function () { document.querySelector('[data-add="Mech keyboard"]').click(); },
-    function () { document.getElementById("app-login").click(); },
-    function () { document.getElementById("app-remove").click(); }
+    function () { autoAdd("Desk lamp", 39); },
+    function () { autoAdd("Mech keyboard", 129); },
+    function () { autoAdd("Mech keyboard", 129); }, /* shows items[1].quantity */
+    function () {
+      dispatch("user", state.user.loggedIn ? "logout" : "login", function () {
+        state.user.loggedIn = !state.user.loggedIn;
+      }, ["logged"]);
+    },
+    function () {
+      if (!state.cart.items.length) return;
+      dispatch("cart", "removeItem", function () {
+        var last = state.cart.items[state.cart.items.length - 1];
+        state.cart.total = Math.max(0, state.cart.total - last.price);
+        if (last.qty > 1) last.qty -= 1;
+        else state.cart.items.pop();
+      }, ["items", "total"]);
+    }
   ];
   var playIdx = 0;
   function autoplay() {
@@ -867,16 +967,15 @@
     if (demoVisible && !document.hidden && Date.now() - lastInteraction > 6000) {
       plays[playIdx % plays.length]();
       playIdx += 1;
-      lastInteraction = 0; /* autoplay doesn't count as user interaction */
     }
     setTimeout(autoplay, 3200);
   }
 
-  /* boot: seed a couple of entries so the panel never reads empty */
+  /* boot: seed entries so the panel never reads empty */
   dispatch("user", "login", function () { state.user.loggedIn = true; }, []);
   dispatch("cart", "addItem", function () {
-    state.cart.items = 1; state.cart.total = 39; state.cart.lastAdded = "Desk lamp";
-    addedStack.push(39);
+    state.cart.items.push({ name: "Desk lamp", price: 39, qty: 1 });
+    state.cart.total = 39;
   }, []);
   render();
   if (!reduced) setTimeout(autoplay, 2600);
@@ -885,7 +984,7 @@
   if (!reduced) {
     var statusEl = document.querySelector(".dt-status");
     var fullText = statusEl.textContent;
-    statusEl.textContent = " ";
+    statusEl.textContent = " ";
     var ci = 0;
     setTimeout(function typeChar() {
       statusEl.textContent = fullText.slice(0, ci) + (ci < fullText.length ? "▌" : "");
@@ -895,35 +994,23 @@
     }, 500);
   }
 
-  /* ---------- pointer-reactive aurora ---------- */
-  if (!reduced && window.matchMedia("(pointer: fine)").matches) {
-    var hero = document.querySelector(".hero");
-    var tx = 0, ty = 0, cx2 = 0, cy2 = 0, raf = null;
-    hero.addEventListener("pointermove", function (e) {
-      var r = hero.getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 26;
-      ty = ((e.clientY - r.top) / r.height - 0.5) * 14;
-      if (!raf) raf = requestAnimationFrame(drift);
-    });
-    function drift() {
-      cx2 += (tx - cx2) * 0.06; cy2 += (ty - cy2) * 0.06;
-      hero.style.setProperty("--ax", cx2.toFixed(2) + "px");
-      hero.style.setProperty("--ay", cy2.toFixed(2) + "px");
-      if (Math.abs(tx - cx2) + Math.abs(ty - cy2) > 0.05) raf = requestAnimationFrame(drift);
-      else raf = null;
-    }
-  }
-
-  /* ---------- time-travel scrubber: a recorded debugging session ---------- */
+  /* ---------- time-travel scrubber: a recorded session with a planted bug.
+     The same story as the product's demo fixture: a quantity bump adds the
+     wrong price, the total goes €90 short, a fix action corrects it. ------- */
   var SESSION = [
-    { store: "user", action: "init",       items: 0, total: 0,   last: null,            logged: false },
-    { store: "user", action: "login",      items: 0, total: 0,   last: null,            logged: true  },
-    { store: "cart", action: "addItem",    items: 1, total: 39,  last: "Desk lamp",     logged: true  },
-    { store: "cart", action: "addItem",    items: 2, total: 168, last: "Mech keyboard", logged: true  },
-    { store: "cart", action: "addItem",    items: 3, total: 207, last: "Desk lamp",     logged: true  },
-    { store: "cart", action: "removeItem", items: 2, total: 168, last: "Desk lamp",     logged: true  },
-    { store: "cart", action: "checkout",   items: 0, total: 0,   last: null,            logged: true  },
-    { store: "user", action: "logout",     items: 0, total: 0,   last: null,            logged: false }
+    { store: "user", action: "login",       items: 0, qty: 0, total: 0,   logged: true,
+      diff: [{ cls: "chg", text: "user.loggedIn: false → true" }], note: "" },
+    { store: "cart", action: "addItem",     items: 1, qty: 0, total: 39,  logged: true,
+      diff: [{ cls: "add", text: "+ items[0] (desk lamp)" }, { cls: "chg", text: "total: 0 → 39" }], note: "" },
+    { store: "cart", action: "addItem",     items: 2, qty: 1, total: 168, logged: true,
+      diff: [{ cls: "add", text: "+ items[1] (mech keyboard)" }, { cls: "chg", text: "total: 39 → 168" }], note: "" },
+    { store: "cart", action: "increaseQty", items: 2, qty: 2, total: 207, logged: true,
+      diff: [{ cls: "chg", text: "items[1].quantity: 1 → 2" }, { cls: "chg", text: "total: 168 → 207" }],
+      note: "the bug: total gained €39, but the keyboard costs €129" },
+    { store: "cart", action: "recalcTotal", items: 2, qty: 2, total: 297, logged: true,
+      diff: [{ cls: "chg", text: "total: 207 → 297" }], note: "the fix: total recomputed from items" },
+    { store: "cart", action: "checkout",    items: 0, qty: 0, total: 0,   logged: true,
+      diff: [{ cls: "chg", text: "- items[0]" }, { cls: "chg", text: "- items[1]" }, { cls: "chg", text: "total: 297 → 0" }], note: "" }
   ];
   var sc = {
     range: document.getElementById("sc-range"),
@@ -931,26 +1018,14 @@
     action: document.getElementById("sc-action"),
     step: document.getElementById("sc-step"),
     diff: document.getElementById("sc-diff"),
+    note: document.getElementById("sc-note"),
     items: document.getElementById("sc-items"),
+    qty: document.getElementById("sc-qty"),
     total: document.getElementById("sc-total"),
-    last: document.getElementById("sc-last"),
     logged: document.getElementById("sc-logged"),
-    ticks: document.getElementById("sc-ticks"),
-    box: document.getElementById("scrub")
+    ticks: document.getElementById("sc-ticks")
   };
   SESSION.forEach(function () { sc.ticks.appendChild(document.createElement("i")); });
-
-  function scDiff(i) {
-    if (i === 0) return "initial state";
-    var a = SESSION[i - 1], b = SESSION[i], out = [];
-    ["items", "total", "last", "logged"].forEach(function (k) {
-      if (a[k] !== b[k]) {
-        var key = k === "logged" ? "loggedIn" : k === "last" ? "lastAdded" : k;
-        out.push('<span class="chg">' + key + ": " + fmtVal(a[k]) + " → " + fmtVal(b[k]) + "</span>");
-      }
-    });
-    return out.join(" &nbsp; ");
-  }
 
   function scRender() {
     var i = Number(sc.range.value);
@@ -958,22 +1033,24 @@
     sc.store.textContent = "[" + s.store + "]";
     sc.action.textContent = s.action;
     sc.step.textContent = "step " + (i + 1) + " / " + SESSION.length;
-    sc.diff.innerHTML = scDiff(i);
+    sc.diff.innerHTML = s.diff.map(function (d) {
+      return '<span class="' + d.cls + '">' + esc(d.text) + "</span>";
+    }).join(" &nbsp; ");
+    sc.note.textContent = s.note;
     sc.items.textContent = s.items;
+    sc.qty.textContent = s.qty;
     sc.total.textContent = s.total;
-    sc.last.textContent = fmtVal(s.last);
     sc.logged.textContent = String(s.logged);
-    [sc.items, sc.total, sc.last, sc.logged].forEach(bump);
-    sc.range.setAttribute("aria-valuetext", s.action + ", step " + (i + 1) + " of " + SESSION.length);
+    [sc.items, sc.qty, sc.total, sc.logged].forEach(bump);
+    sc.range.setAttribute("aria-valuetext",
+      "step " + (i + 1) + " of " + SESSION.length + ": " + s.action + ". " +
+      s.diff.map(function (d) { return d.text; }).join(", ") + (s.note ? ". " + s.note : ""));
     sc.range.style.setProperty("--fill", (i / (SESSION.length - 1)) * 100 + "%");
     Array.prototype.forEach.call(sc.ticks.children, function (dot, di) {
       dot.classList.toggle("past", di <= i);
     });
   }
-  sc.range.addEventListener("input", function () {
-    sc.box.classList.remove("unused");
-    scRender();
-  });
+  sc.range.addEventListener("input", scRender);
   scRender();
 })();
 </script>

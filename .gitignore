@@ -1,0 +1,8 @@
+# Internal design/strategy context for local tooling; not part of the published site
+PRODUCT.md
+.DS_Store
+
+# Local agent/skill tooling
+.agents/
+.claude/
+skills-lock.json
